@@ -1,0 +1,41 @@
+input CreateJobInput {
+    name: String
+}
+
+input UpdateJobInput {
+    id: ID
+    isFinished: Boolean
+    uploadUrl: String
+    scores: [ScoreEntryInput]
+}
+
+type Job {
+    id: ID!
+    name: String
+    isFinished: Boolean
+    uploadUrl: String
+    scores: [ScoreEntry]
+}
+
+type ScoreEntry {
+    position: Int
+    name: String
+    score: Int
+    isHuman: Boolean
+}
+
+input ScoreEntryInput {
+    position: Int
+    name: String
+    score: Int
+    isHuman: Boolean
+}
+
+type Mutation {
+    createJob(input: CreateJobInput!): Job
+    updateJob(input: UpdateJobInput!): Job
+}
+
+type Query {
+    job(id: ID!): Job
+}
