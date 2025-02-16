@@ -2,8 +2,12 @@
 
 namespace Infrastructure;
 
-sealed class Program
+internal sealed class Program
 {
+    private Program()
+    {
+    }
+
     public static void Main(string[] args)
     {
         var app = new App();

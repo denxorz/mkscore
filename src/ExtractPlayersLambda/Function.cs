@@ -3,7 +3,6 @@ using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
 using ExtractPlayersLambda.Textract;
-using GraphQL.Client.Abstractions;
 using GraphQL.Client.Abstractions.Websocket;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.SystemTextJson;
@@ -18,7 +17,7 @@ public class Function
 {
     private readonly IAmazonS3 s3Client;
     private readonly IGraphQLWebSocketClient graphqlClient;
-    private readonly string apiKey;
+    private readonly string apiKey = "";
 
     public Function()
     {
@@ -36,41 +35,26 @@ public class Function
         this.graphqlClient = graphqlClient;
     }
 
-    class PlayerStats
-    {
-        public int Position { get; set; }
-        public string Name { get; set; }
-        public int Score { get; set; }
-        public bool IsHuman { get; set; }
-        public int HumanLevel { get; set; }
-    }
-
-    record ScoreEntry(string Id, bool IsFinished, List<PlayerStats> Scores);
-
     public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
     {
-        var eventRecords = evnt.Records ?? new List<S3Event.S3EventNotificationRecord>();
-        foreach (var record in eventRecords)
+        var eventRecords = evnt.Records ?? [];
+        foreach (var record in eventRecords.Select(r => r.S3).Where(r => r is not null))
         {
-            var s3Event = record.S3;
-            if (s3Event == null)
-            {
-                continue;
-            }
+            var bucketName = record.Bucket.Name;
+            var objectKey = record.Object.Key.Replace("extract/", "").Replace(".json", "");
 
             try
             {
-                var response = await s3Client.GetObjectStreamAsync(s3Event.Bucket.Name, s3Event.Object.Key, null);
-                var extract = System.Text.Json.JsonSerializer.Deserialize<ExtractedText>(response);
+                var response = await s3Client.GetObjectStreamAsync(bucketName, record.Object.Key, null);
+                var extract = await System.Text.Json.JsonSerializer.DeserializeAsync<ExtractedText>(response);
 
-                var responseImage = await s3Client.GetObjectStreamAsync(s3Event.Bucket.Name, s3Event.Object.Key.Replace("extract", "uploads").Replace(".json", ""), null);
+                var responseImage = await s3Client.GetObjectStreamAsync(bucketName, $"uploads/{objectKey}", null);
 
-                using Image<Rgba32> image = Image.Load<Rgba32>(responseImage);
+                using Image<Rgba32> image = await Image.LoadAsync<Rgba32>(responseImage);
 
                 if (extract is not null)
                 {
-                    var page = extract.Page;
-                    var lines = extract.Page.Children(extract, context);
+                    var lines = extract.Page.Children(extract);
                     var playerStats = new List<PlayerStats>();
 
                     var firstLine = lines.First(l => l.Text == "1"); // TODO : handle if not found
@@ -85,7 +69,7 @@ public class Function
                             int.TryParse(lines[i + 2].Text, out var score);
                             int humanLevel = HumanLevel(lines[i + 1], image);
 
-                            playerStats.Add(new PlayerStats { Position = position, Name = name, Score = score, HumanLevel = humanLevel });
+                            playerStats.Add(new PlayerStats(position, name, score, humanLevel));
                         }
                         catch (ArgumentOutOfRangeException)
                         {
@@ -104,7 +88,7 @@ public class Function
                     using var outputStream = new MemoryStream();
                     await System.Text.Json.JsonSerializer.SerializeAsync(outputStream, playerStats);
                     outputStream.Seek(0, SeekOrigin.Begin);
-                    var putRequest = new PutObjectRequest { BucketName = s3Event.Bucket.Name, Key = s3Event.Object.Key.Replace("extract", "stats"), InputStream = outputStream };
+                    var putRequest = new PutObjectRequest { BucketName = bucketName, Key = $"stats/{objectKey}.json", InputStream = outputStream };
                     await s3Client.PutObjectAsync(putRequest);
 
 
@@ -129,7 +113,7 @@ public class Function
                         OperationName = "updateJob",
                         Variables = new
                         {
-                            input = new ScoreEntry(s3Event.Object.Key.Replace("extract", ""), true, playerStats)
+                            input = new ScoreEntry(objectKey, true, playerStats)
                         }
                     };
                     await graphqlClient.SendMutationAsync<ScoreEntry>(updateJobRequest);
@@ -137,7 +121,7 @@ public class Function
             }
             catch (Exception e)
             {
-                context.Logger.LogError($"Error getting object {s3Event.Object.Key} from bucket {s3Event.Bucket.Name}. Make sure they exist and your bucket is in the same region as this function.");
+                context.Logger.LogError($"Error getting object {objectKey} from bucket {bucketName}. Make sure they exist and your bucket is in the same region as this function.");
                 context.Logger.LogError(e.Message);
                 context.Logger.LogError(e.StackTrace);
                 throw;
@@ -172,18 +156,5 @@ public class Function
         });
 
         return totalCellColor;
-    }
-}
-
-
-public class GraphQLHttpRequestWithAuthSupport : GraphQLHttpRequest
-{
-    public string? ApiKey { get; set; }
-
-    public override HttpRequestMessage ToHttpRequestMessage(GraphQLHttpClientOptions options, IGraphQLJsonSerializer serializer)
-    {
-        var r = base.ToHttpRequestMessage(options, serializer);
-        r.Headers.Add("x-api-key", ApiKey);
-        return r;
     }
 }

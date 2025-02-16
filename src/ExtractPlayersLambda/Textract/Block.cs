@@ -1,6 +1,4 @@
-﻿using Amazon.Lambda.Core;
-
-namespace ExtractPlayersLambda.Textract;
+﻿namespace ExtractPlayersLambda.Textract;
 
 public class Block
 {
@@ -17,20 +15,20 @@ public class Block
     public int RowIndex { get; set; }
     public int RowSpan { get; set; }
 
-    public List<Block> Children(ExtractedText page, ILambdaContext context)
+    public List<Block> Children(ExtractedText page)
     {
         if (Relationships is null) return [];
         return Relationships[0]?.Ids?.Select(page.TryGetBlock).Where(b => b is not null).Select(b => b!).ToList() ?? [];
     }
 
-    public List<Block?> Lines(ExtractedText page, ILambdaContext context)
+    public List<Block?> Lines(ExtractedText page)
     {
         if (Relationships is null) return [];
         return Relationships[0]?.Ids?.Select(page.TryGetLine).Where(b => b.BlockType == "").ToList() ?? [];
     }
 
-    public string TextWithChild(ExtractedText page, ILambdaContext context)
+    public string TextWithChild(ExtractedText page)
     {
-        return $"{Text}:[{string.Join(',', Children(page, context).Select(c => c?.TextWithChild(page, context)))}]"; ;
+        return $"{Text}:[{string.Join(',', Children(page).Select(c => c?.TextWithChild(page)))}]";
     }
 }
