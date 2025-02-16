@@ -6,41 +6,40 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Lambda.EventSources;
 using Amazon.CDK.AWS.IAM;
 
+namespace Infrastructure;
 
-namespace Cdk
+public class CdkStack : Stack
 {
-    public class CdkStack : Stack
+    internal CdkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
     {
-        internal CdkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
-        {
-            var IncomingImagesBucket = new Bucket(
-                this,
-                "MkScoreIncomingImagesBucket",
-                new BucketProps
-                {
-                    BucketName = "mkscore-incoming-images-bucket-1",
-                    WebsiteIndexDocument = "index.html",
-                    Cors = [
-                        new CorsRule
-                            {
-                                AllowedHeaders= ["*"],
-                                AllowedMethods= [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
-                                AllowedOrigins= ["*"],
-                                ExposedHeaders= [],
-                            }
-                    ]
-                }
-            );
+        var IncomingImagesBucket = new Bucket(
+            this,
+            "MkScoreIncomingImagesBucket",
+            new BucketProps
+            {
+                BucketName = "mkscore-incoming-images-bucket-1",
+                WebsiteIndexDocument = "index.html",
+                Cors = [
+                    new CorsRule
+                        {
+                            AllowedHeaders= ["*"],
+                            AllowedMethods= [HttpMethods.PUT, HttpMethods.GET, HttpMethods.POST, HttpMethods.HEAD],
+                            AllowedOrigins= ["*"],
+                            ExposedHeaders= [],
+                        }
+                ]
+            }
+        );
 
-            var GetUploadUrlLambda = new Function(
-                this,
-                "MkScoreGetUploadUrlLambda",
-                new FunctionProps
-                {
-                    Runtime = Runtime.NODEJS_LATEST,
-                    Handler = "index.handler",
-                    Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
-                    Code = Code.FromInline(@"
+        var GetUploadUrlLambda = new Function(
+            this,
+            "MkScoreGetUploadUrlLambda",
+            new FunctionProps
+            {
+                Runtime = Runtime.NODEJS_LATEST,
+                Handler = "index.handler",
+                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
+                Code = Code.FromInline(@"
                     const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
                     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
                     const crypto = require('crypto');
@@ -66,39 +65,39 @@ namespace Cdk
                         };
                     };
                     "),
-                }
-            );
-            IncomingImagesBucket.GrantWrite(GetUploadUrlLambda);
+            }
+        );
+        IncomingImagesBucket.GrantWrite(GetUploadUrlLambda);
 
-            var api = new LambdaRestApi(
-                this,
-                "MkScoreApi",
-                new LambdaRestApiProps
+        var api = new LambdaRestApi(
+            this,
+            "MkScoreApi",
+            new LambdaRestApiProps
+            {
+                Handler = GetUploadUrlLambda,
+                DefaultCorsPreflightOptions = new CorsOptions
                 {
-                    Handler = GetUploadUrlLambda,
-                    DefaultCorsPreflightOptions = new CorsOptions
-                    {
-                        AllowOrigins = ["*"],
-                        AllowMethods = ["*"],
-                        AllowHeaders = ["*"],
-                        AllowCredentials = true,
-                    },
-                }
-            );
+                    AllowOrigins = ["*"],
+                    AllowMethods = ["*"],
+                    AllowHeaders = ["*"],
+                    AllowCredentials = true,
+                },
+            }
+        );
 
-            var getUploadUrlApi = api.Root.AddResource("getUploadUrl");
-            getUploadUrlApi.AddMethod("GET");
+        var getUploadUrlApi = api.Root.AddResource("getUploadUrl");
+        getUploadUrlApi.AddMethod("GET");
 
-            var DetectScoreLambda = new Function(
-                this,
-                "MkScoreDetectScoreLambda",
-                new FunctionProps
-                {
-                    Runtime = Runtime.NODEJS_LATEST,
-                    Handler = "index.handler",
-                    Timeout = Duration.Minutes(1),
-                    Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
-                    Code = Code.FromInline(@"
+        var DetectScoreLambda = new Function(
+            this,
+            "MkScoreDetectScoreLambda",
+            new FunctionProps
+            {
+                Runtime = Runtime.NODEJS_LATEST,
+                Handler = "index.handler",
+                Timeout = Duration.Minutes(1),
+                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
+                Code = Code.FromInline(@"
                     const { TextractClient, AnalyzeDocumentCommand } = require('@aws-sdk/client-textract');
                     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
@@ -124,62 +123,61 @@ namespace Cdk
                         await s3Client.send(putCommand);
                     };
                     "),
-                }
-            );
-            IncomingImagesBucket.GrantReadWrite(DetectScoreLambda);
+            }
+        );
+        IncomingImagesBucket.GrantReadWrite(DetectScoreLambda);
 
-            DetectScoreLambda.AddEventSource(
-                new S3EventSource(
-                    IncomingImagesBucket,
-                    new S3EventSourceProps
-                    {
-                        Events = [EventType.OBJECT_CREATED_PUT],
-                        Filters = [new NotificationKeyFilter { Prefix = "uploads/" }],
-                    })
-                );
-
-            DetectScoreLambda.AddToRolePolicy(
-                new PolicyStatement(
-                    new PolicyStatementProps
-                    {
-                        Effect = Effect.ALLOW,
-                        Actions = ["textract:AnalyzeDocument"],
-                        Resources = ["*"]
-                    }));
-
-            var ExtractPlayersLambda = new Function(
-                this,
-                "MkScoreExtractPlayersLambda",
-                new FunctionProps
+        DetectScoreLambda.AddEventSource(
+            new S3EventSource(
+                IncomingImagesBucket,
+                new S3EventSourceProps
                 {
-                    Runtime = Runtime.DOTNET_8,
-                    Handler = "MkScoreExtractPlayersLambda::MkScoreExtractPlayersLambda.Function::FunctionHandler",
-                    Timeout = Duration.Minutes(1),
-                    Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
-                    Code = Code.FromCustomCommand(
-                        "src/MkScoreExtractPlayersLambda/function.zip",
-                        ["dotnet lambda package -pl src/MkScoreExtractPlayersLambda -o src/MkScoreExtractPlayersLambda/function.zip"],
-                        new CustomCommandOptions
-                        {
-                            CommandOptions = new Dictionary<string, object> { { "shell", true } }
-                        })
-                }
-            );
-            IncomingImagesBucket.GrantReadWrite(ExtractPlayersLambda);
-
-            ExtractPlayersLambda.AddEventSource(
-               new S3EventSource(
-                   IncomingImagesBucket,
-                   new S3EventSourceProps
-                   {
-                       Events = [EventType.OBJECT_CREATED_PUT],
-                       Filters = [new NotificationKeyFilter { Prefix = "extract/" }],
-                   })
+                    Events = [EventType.OBJECT_CREATED_PUT],
+                    Filters = [new NotificationKeyFilter { Prefix = "uploads/" }],
+                })
             );
 
-            var graphQlApi = new Api(this);
-            graphQlApi.GrantQuery(ExtractPlayersLambda);
-            graphQlApi.GrantMutation(ExtractPlayersLambda);
-        }
+        DetectScoreLambda.AddToRolePolicy(
+            new PolicyStatement(
+                new PolicyStatementProps
+                {
+                    Effect = Effect.ALLOW,
+                    Actions = ["textract:AnalyzeDocument"],
+                    Resources = ["*"]
+                }));
+
+        var ExtractPlayersLambda = new Function(
+            this,
+            "MkScoreExtractPlayersLambda",
+            new FunctionProps
+            {
+                Runtime = Runtime.DOTNET_8,
+                Handler = "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
+                Timeout = Duration.Minutes(1),
+                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
+                Code = Code.FromCustomCommand(
+                    "src/ExtractPlayersLambda/function.zip",
+                    ["dotnet lambda package -pl src/ExtractPlayersLambda -o src/ExtractPlayersLambda/function.zip"],
+                    new CustomCommandOptions
+                    {
+                        CommandOptions = new Dictionary<string, object> { { "shell", true } }
+                    })
+            }
+        );
+        IncomingImagesBucket.GrantReadWrite(ExtractPlayersLambda);
+
+        ExtractPlayersLambda.AddEventSource(
+           new S3EventSource(
+               IncomingImagesBucket,
+               new S3EventSourceProps
+               {
+                   Events = [EventType.OBJECT_CREATED_PUT],
+                   Filters = [new NotificationKeyFilter { Prefix = "extract/" }],
+               })
+        );
+
+        var graphQlApi = new Api(this);
+        graphQlApi.GrantQuery(ExtractPlayersLambda);
+        graphQlApi.GrantMutation(ExtractPlayersLambda);
     }
 }

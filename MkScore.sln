@@ -5,7 +5,7 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{48770C9A-D32F-46FE-9B7E-502FCEEC65F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MkScoreExtractPlayersLambda", "src\MkScoreExtractPlayersLambda\MkScoreExtractPlayersLambda.csproj", "{86E87839-7EAF-49C4-BBBD-1C8A4E34336A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractPlayersLambda", "src\ExtractPlayersLambda\ExtractPlayersLambda.csproj", "{86E87839-7EAF-49C4-BBBD-1C8A4E34336A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

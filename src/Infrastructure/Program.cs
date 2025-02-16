@@ -1,16 +1,16 @@
 ﻿using Amazon.CDK;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace Cdk
+namespace Infrastructure;
+
+sealed class Program
 {
-    sealed class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var app = new App();
-            new CdkStack(app, "CdkStack", new StackProps
+        var app = new App();
+        _ = new CdkStack(
+            app,
+            "CdkStack",
+            new StackProps
             {
                 // If you don't specify 'env', this stack will be environment-agnostic.
                 // Account/Region-dependent features and context lookups will not work,
@@ -38,7 +38,6 @@ namespace Cdk
 
                 // For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
             });
-            app.Synth();
-        }
+        app.Synth();
     }
 }

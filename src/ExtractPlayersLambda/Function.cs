@@ -1,20 +1,18 @@
-using System.Net.Http.Headers;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3;
 using Amazon.S3.Model;
-using GraphQL;
+using ExtractPlayersLambda.Textract;
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Abstractions.Websocket;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.SystemTextJson;
-using MkScoreExtractPlayersLambda.Textract;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
-namespace MkScoreExtractPlayersLambda;
+namespace ExtractPlayersLambda;
 
 public class Function
 {
@@ -47,7 +45,7 @@ public class Function
         public int HumanLevel { get; set; }
     }
 
-    record ScoreEntry(string Id,bool IsFinished,List<PlayerStats> Scores);
+    record ScoreEntry(string Id, bool IsFinished, List<PlayerStats> Scores);
 
     public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
     {

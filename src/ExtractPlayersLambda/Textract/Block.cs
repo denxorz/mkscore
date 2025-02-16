@@ -1,6 +1,6 @@
 ﻿using Amazon.Lambda.Core;
 
-namespace MkScoreExtractPlayersLambda.Textract;
+namespace ExtractPlayersLambda.Textract;
 
 public class Block
 {
