@@ -17,7 +17,7 @@ internal class Api
             new GraphqlApiProps
             {
                 Name = "MKScoreApi",
-                Definition = Definition.FromFile("./src/Cdk/apischema.graphql"),
+                Definition = Definition.FromFile("./src/Infrastructure/apischema.graphql"),
             });
 
         var jobsTable = new Table(

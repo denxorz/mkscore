@@ -156,8 +156,8 @@ public class CdkStack : Stack
                 Timeout = Duration.Minutes(1),
                 Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromCustomCommand(
-                    "src/ExtractPlayersLambda/function.zip",
-                    ["dotnet lambda package -pl src/ExtractPlayersLambda -o src/ExtractPlayersLambda/function.zip"],
+                    "src/ExtractPlayersLambda/bin/function.zip",
+                    ["dotnet lambda package -pl src/ExtractPlayersLambda -o src/ExtractPlayersLambda/bin/function.zip"],
                     new CustomCommandOptions
                     {
                         CommandOptions = new Dictionary<string, object> { { "shell", true } }
