@@ -37,6 +37,7 @@ public class CdkStack : Stack
             new FunctionProps
             {
                 Runtime = Runtime.NODEJS_LATEST,
+                Architecture = Architecture.ARM_64,
                 Handler = "index.handler",
                 Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromInline(@"
@@ -94,6 +95,7 @@ public class CdkStack : Stack
             new FunctionProps
             {
                 Runtime = Runtime.NODEJS_LATEST,
+                Architecture = Architecture.ARM_64,
                 Handler = "index.handler",
                 Timeout = Duration.Minutes(1),
                 Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
@@ -152,6 +154,7 @@ public class CdkStack : Stack
             new FunctionProps
             {
                 Runtime = Runtime.DOTNET_8,
+                Architecture = Architecture.ARM_64,
                 Handler = "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
                 Timeout = Duration.Minutes(1),
                 Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },

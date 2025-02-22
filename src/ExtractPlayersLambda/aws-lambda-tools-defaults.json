@@ -18,7 +18,7 @@
     "function-description" : "",
     "package-type"         : "Zip",
     "function-role"        : "arn:aws:iam::766704866489:role/CdkStack-MkScoreExtractPlayersLambdaServiceRole6C12-3Uc3frTxuDw1",
-    "function-architecture" : "x86_64",
+    "function-architecture" : "arm64",
     "function-subnets"      : "",
     "function-security-groups" : "",
     "tracing-mode"             : "PassThrough",
