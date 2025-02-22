@@ -97,8 +97,8 @@ public class Function
                     {
                         ApiKey = apiKey,
                         Query = """
-                            mutation UpdateJob($input: UpdateJobInput) {
-                                updateJob($input: $input) {
+                            mutation updateJob($input: UpdateJobInput!) {
+                                updateJob(input: $input) {
                                     id
                                     isFinished
                                     scores {
@@ -116,7 +116,8 @@ public class Function
                             input = new ScoreEntry(objectKey, true, playerStats)
                         }
                     };
-                    await graphqlClient.SendMutationAsync<ScoreEntry>(updateJobRequest);
+                    var res = await graphqlClient.SendMutationAsync<ScoreEntry>(updateJobRequest);
+                    context.Logger.LogInformation($"SendMutationAsync:{string.Join("/", res.Errors?.Select(e => e.Message) ?? [])}");
                 }
             }
             catch (Exception e)

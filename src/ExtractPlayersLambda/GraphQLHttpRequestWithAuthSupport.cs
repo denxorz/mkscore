@@ -1,4 +1,5 @@
-﻿using GraphQL.Client.Abstractions;
+﻿using System.Net.Http.Headers;
+using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 
 namespace ExtractPlayersLambda;

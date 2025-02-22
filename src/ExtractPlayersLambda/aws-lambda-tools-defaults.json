@@ -12,7 +12,7 @@
     "function-runtime" : "dotnet8",
     "function-memory-size" : 128,
     "function-timeout"     : 60,
-    "function-handler"     : "MkScoreExtractPlayersLambda::MkScoreExtractPlayersLambda.Function::FunctionHandler",
+    "function-handler"     : "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
     "framework"            : "net8.0",
     "function-name"        : "CdkStack-MkScoreExtractPlayersLambda35EDF0FE-TkBKNnXcpuWp",
     "function-description" : "",
@@ -22,6 +22,6 @@
     "function-subnets"      : "",
     "function-security-groups" : "",
     "tracing-mode"             : "PassThrough",
-    "environment-variables"    : "\"GraphQLAPIKey\"=\"da2-n2nr6czjkjdyre2jjnisevobhu\";\"GraphQLAPIURL\"=\"https://pgagcjxksvdqbkkfwjdszvag7u.appsync-api.eu-central-1.amazonaws.com/graphql\";\"IncomingImagesBucket\"=\"mkscore-incoming-images-bucket-1\"",
+    "environment-variables"    : "\"GraphQLAPIKey\"=\"da2-q4jgb7zanfarpjrjp74cmvmba4\";\"GraphQLAPIURL\"=\"https://pgagcjxksvdqbkkfwjdszvag7u.appsync-api.eu-central-1.amazonaws.com/graphql\";\"IncomingImagesBucket\"=\"mkscore-incoming-images-bucket-1\"",
     "image-tag"                : ""
 }

@@ -18,6 +18,19 @@ internal class Api
             {
                 Name = "MKScoreApi",
                 Definition = Definition.FromFile("./src/Infrastructure/apischema.graphql"),
+                AuthorizationConfig = new AuthorizationConfig
+                {
+                    DefaultAuthorization = new AuthorizationMode
+                    {
+                        AuthorizationType = AuthorizationType.API_KEY,
+                        ApiKeyConfig = new ApiKeyConfig
+                        {
+                            Name = "CDK / Lambda 2025",
+                            Description = "CDK / Lambda",
+                            Expires = Expiration.After(Duration.Days(365)),
+                        }
+                    }
+                },
             });
 
         var jobsTable = new Table(
@@ -66,12 +79,12 @@ internal class Api
                 FieldName = "updateJob",
                 Api = api,
                 DataSource = jobsDataSource,
-                RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Auto(), Values.Projecting("input")),
+                RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Is("input.id"), Values.Projecting("input")),
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        new CfnOutput(stack, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
-        new CfnOutput(stack, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
+        _ = new CfnOutput(stack, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
+        _ = new CfnOutput(stack, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
     }
 
     public void GrantQuery(Function function, params string[] fields)
