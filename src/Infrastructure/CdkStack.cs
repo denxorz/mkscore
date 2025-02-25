@@ -1,10 +1,11 @@
 using Amazon.CDK;
 using Constructs;
 using Amazon.CDK.AWS.Lambda;
-using Amazon.CDK.AWS.APIGateway;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Lambda.EventSources;
 using Amazon.CDK.AWS.IAM;
+using Amazon.CDK.AWS.DynamoDB;
+using Amazon.CDK.AWS.Apigatewayv2;
 
 namespace Infrastructure;
 
@@ -31,6 +32,18 @@ public class CdkStack : Stack
             }
         );
 
+        var jobsTable = new Table(
+            this,
+            "MKScoreJobsTable",
+            new TableProps
+            {
+                PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
+                {
+                    Name = "id",
+                    Type = AttributeType.STRING,
+                },
+            });
+
         var CreateJobLambda = new Function(
             this,
             "MkScoreCreateJobLambda",
@@ -49,21 +62,34 @@ public class CdkStack : Stack
                         const bucket = process.env.IncomingImagesBucket;
                         const s3Client = new S3Client({});
                         const uuid = crypto.randomUUID();
-                        const command = new PutObjectCommand({Bucket:bucket, Key:`uploads/${uuid}` });
-                        const url = await getSignedUrl(s3Client, command, { expiresIn: 600 });
+                        const putObjectCommand = new PutObjectCommand({Bucket:bucket, Key:`uploads/${uuid}` });
+                        const url = await getSignedUrl(s3Client, putObjectCommand, { expiresIn: 600 });
 
-                        return {
+                        const newJob = {
                             id: uuid,
                             name: event.arguments.input.name,
                             isFinished: false,
                             uploadUrl: url,
                             scores: [],
                         };
+
+                        const { DynamoDBClient, PutItemCommand  } = require('@aws-sdk/client-dynamodb');
+                        const { marshall } = require('@aws-sdk/util-dynamodb');
+                        const dynamoDbInput = marshall(newJob);
+                        const client = new DynamoDBClient({});
+                        const jobsTable = process.env.JobsTable;
+                        const putItemCommand = new PutItemCommand({TableName:jobsTable, Item:dynamoDbInput});
+                        await client.send(putItemCommand);
+
+                        return newJob;
                     };
                     "),
             }
         );
         IncomingImagesBucket.GrantWrite(CreateJobLambda);
+
+        jobsTable.GrantWriteData(CreateJobLambda);
+        CreateJobLambda.AddEnvironment("JobsTable", jobsTable.TableName);
 
         var DetectScoreLambda = new Function(
             this,
@@ -155,7 +181,7 @@ public class CdkStack : Stack
                })
         );
 
-        var graphQlApi = new Api(this, CreateJobLambda);
+        var graphQlApi = new Api(this, jobsTable, CreateJobLambda);
         graphQlApi.GrantQuery(ExtractPlayersLambda);
         graphQlApi.GrantMutation(ExtractPlayersLambda);
     }

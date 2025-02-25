@@ -9,7 +9,7 @@ internal class Api
 {
     private readonly GraphqlApi api;
 
-    public Api(Stack stack, Function createJobLambda)
+    public Api(Stack stack, Table jobsTable, Function createJobLambda)
     {
         api = new GraphqlApi(
             stack,
@@ -30,18 +30,6 @@ internal class Api
                             Expires = Expiration.After(Duration.Days(365)),
                         }
                     }
-                },
-            });
-
-        var jobsTable = new Table(
-            stack,
-            "MKScoreJobsTable",
-            new TableProps
-            {
-                PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
-                {
-                    Name = "id",
-                    Type = AttributeType.STRING,
                 },
             });
 
