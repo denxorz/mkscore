@@ -31,9 +31,9 @@ public class CdkStack : Stack
             }
         );
 
-        var GetUploadUrlLambda = new Function(
+        var CreateJobLambda = new Function(
             this,
-            "MkScoreGetUploadUrlLambda",
+            "MkScoreCreateJobLambda",
             new FunctionProps
             {
                 Runtime = Runtime.NODEJS_LATEST,
@@ -53,41 +53,17 @@ public class CdkStack : Stack
                         const url = await getSignedUrl(s3Client, command, { expiresIn: 600 });
 
                         return {
-                            statusCode: 200,
-                            headers: {
-                              'Content-Type': 'application/json',
-                              'Access-Control-Allow-Origin': '*',
-                              'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,PUT',
-                              'Access-Control-Allow-Headers': '*'
-                            },
-                            body: JSON.stringify({
-                                preSignedUrl: url
-	                        })
+                            id: uuid,
+                            name: event.arguments.input.name,
+                            isFinished: false,
+                            uploadUrl: url,
+                            scores: [],
                         };
                     };
                     "),
             }
         );
-        IncomingImagesBucket.GrantWrite(GetUploadUrlLambda);
-
-        var api = new LambdaRestApi(
-            this,
-            "MkScoreApi",
-            new LambdaRestApiProps
-            {
-                Handler = GetUploadUrlLambda,
-                DefaultCorsPreflightOptions = new CorsOptions
-                {
-                    AllowOrigins = ["*"],
-                    AllowMethods = ["*"],
-                    AllowHeaders = ["*"],
-                    AllowCredentials = true,
-                },
-            }
-        );
-
-        var getUploadUrlApi = api.Root.AddResource("getUploadUrl");
-        getUploadUrlApi.AddMethod("GET");
+        IncomingImagesBucket.GrantWrite(CreateJobLambda);
 
         var DetectScoreLambda = new Function(
             this,
@@ -179,7 +155,7 @@ public class CdkStack : Stack
                })
         );
 
-        var graphQlApi = new Api(this);
+        var graphQlApi = new Api(this, CreateJobLambda);
         graphQlApi.GrantQuery(ExtractPlayersLambda);
         graphQlApi.GrantMutation(ExtractPlayersLambda);
     }

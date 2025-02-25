@@ -9,7 +9,7 @@ internal class Api
 {
     private readonly GraphqlApi api;
 
-    public Api(Stack stack)
+    public Api(Stack stack, Function createJobLambda)
     {
         api = new GraphqlApi(
             stack,
@@ -45,43 +45,43 @@ internal class Api
                 },
             });
 
-        var jobsDataSource = api.AddDynamoDbDataSource("MKScoreJobsDataSource", jobsTable);
+        var jobsDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreJobsDynamoDataSource", jobsTable);
 
-        jobsDataSource.CreateResolver(
+        jobsDynamoDbDataSource.CreateResolver(
             "MKScoreJobsGetResolver",
             new ResolverProps
             {
                 TypeName = "Query",
                 FieldName = "job",
                 Api = api,
-                DataSource = jobsDataSource,
+                DataSource = jobsDynamoDbDataSource,
                 RequestMappingTemplate = MappingTemplate.DynamoDbQuery(KeyCondition.Eq("id", "id")),
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        jobsDataSource.CreateResolver(
-            "MKScoreJobsAddResolver",
-            new ResolverProps
-            {
-                TypeName = "Mutation",
-                FieldName = "createJob",
-                Api = api,
-                DataSource = jobsDataSource,
-                RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Auto(), Values.Projecting("input")),
-                ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
-            });
-
-        jobsDataSource.CreateResolver(
+        jobsDynamoDbDataSource.CreateResolver(
             "MKScoreJobsUpdateResolver",
             new ResolverProps
             {
                 TypeName = "Mutation",
                 FieldName = "updateJob",
                 Api = api,
-                DataSource = jobsDataSource,
+                DataSource = jobsDynamoDbDataSource,
                 RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Is("input.id"), Values.Projecting("input")),
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
+
+        var jobsLambdaDataSource = api.AddLambdaDataSource("MKScoreJobsLambdaDataSource", createJobLambda);
+
+        jobsLambdaDataSource.CreateResolver(
+            "MKScoreJobsCreateResolver",
+            new ResolverProps
+            {
+                TypeName = "Mutation",
+                FieldName = "createJob",
+                Api = api
+            });
+
 
         _ = new CfnOutput(stack, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
         _ = new CfnOutput(stack, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
