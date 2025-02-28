@@ -70,6 +70,16 @@ export type ScoreEntryInput = {
   score?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  updatedJob?: Maybe<Job>;
+};
+
+
+export type SubscriptionUpdatedJobArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export type UpdateJobInput = {
   id?: InputMaybe<Scalars['ID']['input']>;
   isFinished?: InputMaybe<Scalars['Boolean']['input']>;
@@ -77,12 +87,20 @@ export type UpdateJobInput = {
   uploadUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type GetJobQueryVariables = Exact<{
+export type CreateJobMutationVariables = Exact<{
+  input: CreateJobInput;
+}>;
+
+
+export type CreateJobMutation = { __typename?: 'Mutation', createJob?: { __typename?: 'Job', id: string, uploadUrl?: string | null } | null };
+
+export type UpdatedJobSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetJobQuery = { __typename?: 'Query', job?: { __typename?: 'Job', name?: string | null } | null };
+export type UpdatedJobSubscription = { __typename?: 'Subscription', updatedJob?: { __typename?: 'Job', id: string, isFinished?: boolean | null, scores?: Array<{ __typename?: 'ScoreEntry', position?: number | null, name?: string | null, score?: number | null, isHuman?: boolean | null } | null> | null } | null };
 
 
-export const GetJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"job"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetJobQuery, GetJobQueryVariables>;
+export const CreateJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateJobInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uploadUrl"}}]}}]}}]} as unknown as DocumentNode<CreateJobMutation, CreateJobMutationVariables>;
+export const UpdatedJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"updatedJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updatedJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"isFinished"}},{"kind":"Field","name":{"kind":"Name","value":"scores"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"score"}},{"kind":"Field","name":{"kind":"Name","value":"isHuman"}}]}}]}}]}}]} as unknown as DocumentNode<UpdatedJobSubscription, UpdatedJobSubscriptionVariables>;

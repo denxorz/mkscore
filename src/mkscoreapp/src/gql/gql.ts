@@ -14,10 +14,12 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n    query getJob($id: ID!) {\n      job(id: $id) {\n        name\n      }\n    }\n  ": typeof types.GetJobDocument,
+    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  ": typeof types.CreateJobDocument,
+    "\n      subscription updatedJob($id: ID!) {\n        updatedJob(id: $id) {\n          id\n          isFinished\n          scores {\n            position\n            name\n            score\n            isHuman\n          }\n        }\n      }\n    ": typeof types.UpdatedJobDocument,
 };
 const documents: Documents = {
-    "\n    query getJob($id: ID!) {\n      job(id: $id) {\n        name\n      }\n    }\n  ": types.GetJobDocument,
+    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  ": types.CreateJobDocument,
+    "\n      subscription updatedJob($id: ID!) {\n        updatedJob(id: $id) {\n          id\n          isFinished\n          scores {\n            position\n            name\n            score\n            isHuman\n          }\n        }\n      }\n    ": types.UpdatedJobDocument,
 };
 
 /**
@@ -37,7 +39,11 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query getJob($id: ID!) {\n      job(id: $id) {\n        name\n      }\n    }\n  "): (typeof documents)["\n    query getJob($id: ID!) {\n      job(id: $id) {\n        name\n      }\n    }\n  "];
+export function graphql(source: "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  "): (typeof documents)["\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n      subscription updatedJob($id: ID!) {\n        updatedJob(id: $id) {\n          id\n          isFinished\n          scores {\n            position\n            name\n            score\n            isHuman\n          }\n        }\n      }\n    "): (typeof documents)["\n      subscription updatedJob($id: ID!) {\n        updatedJob(id: $id) {\n          id\n          isFinished\n          scores {\n            position\n            name\n            score\n            isHuman\n          }\n        }\n      }\n    "];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

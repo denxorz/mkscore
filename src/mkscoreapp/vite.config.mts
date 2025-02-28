@@ -46,17 +46,18 @@ export default defineConfig({
     }),
     Fonts({
       google: {
-        families: [ {
+        families: [{
           name: 'Roboto',
           styles: 'wght@100;300;400;500;700;900',
         }],
       },
     }),
   ],
-  define: { 'process.env': {} },
+  define: { 'process.env': {}, global: {} },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "./runtimeConfig": "./runtimeConfig.browser",
     },
     extensions: [
       '.js',
