@@ -1,10 +1,18 @@
 <template>
   <v-container class="fill-height">
     <v-responsive class="align-centerfill-height mx-auto" max-width="900">
-      <v-card>
-        <v-progress-linear v-show="isWorking" color="deep-purple-accent-4" height="6" indeterminate
-          rounded></v-progress-linear>
-        <v-form @submit.prevent="handleSubmit">
+      <v-card class="mx-auto" max-width="300">
+        <v-progress-linear v-show="isWorking" indeterminate rounded></v-progress-linear>
+
+        <v-data-table :items="items" hide-default-footer hide-default-header :headers="headers">
+          <template v-slot:item.player="{ value }">
+            <v-chip v-if="value">
+              {{ value }}
+            </v-chip>
+          </template>
+        </v-data-table>
+
+        <v-form @submit.prevent="handleSubmit" v-if="!items?.length">
           <v-file-input v-model="file" :disabled="isWorking" />
           <v-btn type="submit" :disabled="isWorking">add</v-btn>
         </v-form>
@@ -17,7 +25,7 @@
 import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { graphql } from '@/gql'
 import axios from 'axios'
-import type { Job } from '@/gql/graphql';
+import type { Job, Maybe, ScoreEntry } from '@/gql/graphql';
 
 // const { result: queryResult } = useQuery(
 //   graphql(`
@@ -33,6 +41,13 @@ import type { Job } from '@/gql/graphql';
 const job = ref<Job | null | undefined>();
 const id = computed(() => job.value?.id || '');
 const isWorking = ref(false);
+const items = computed(() => (job?.value?.scores ?? []).map(s => ({ ...s, player: playerName(s) })))
+const headers = [
+  { title: 'Pos', key: 'position' },
+  { title: 'Name', key: 'name' },
+  { title: 'Score', key: 'score' },
+  { title: 'Player', key: 'player' },
+]
 
 const { mutate: createJob } = useMutation(
   graphql(`
@@ -44,6 +59,21 @@ const { mutate: createJob } = useMutation(
     }
   `)
 )
+
+const playerName = (s: Maybe<ScoreEntry>) => {
+  if (!s?.isHuman) return undefined;
+
+  switch (s.name) {
+    case "Waluigi": return "JP";
+    case "Diddy Kong": return "Koen";
+    case "Donkey Kong": return "Marcel";
+    case "Peach": return "Lui";
+    case "Roy": return "Wim";
+    case "Dry Bones": return "Dennis";
+    case "Baby Mario": return "Boris";
+    default: return undefined;
+  }
+};
 
 const subscriptionVariables = computed(() => ({ id: id.value }));
 const subscriptionEnabled = computed(() => !!(subscriptionVariables.value?.id));
