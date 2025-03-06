@@ -6,7 +6,7 @@ input UpdateJobInput {
     id: ID
     isFinished: Boolean
     uploadUrl: String
-    scores: [ScoreEntryInput]
+    scores: [ScoreInput]
 }
 
 type Job {
@@ -14,30 +14,54 @@ type Job {
     name: String
     isFinished: Boolean
     uploadUrl: String
-    scores: [ScoreEntry]
+    scores: [ScoreSuggestion]
 }
 
-type ScoreEntry {
+type ScoreSuggestion {
     position: Int
     name: String
     score: Int
     isHuman: Boolean
 }
 
-input ScoreEntryInput {
+input ScoreSuggestionInput {
     position: Int
     name: String
     score: Int
     isHuman: Boolean
+}
+
+input CreateScoreInput {
+    score: ScoreInput
+}
+
+type Score {
+    id: ID!
+    position: Int
+    name: String
+    score: Int
+    isHuman: Boolean
+    playerName: String
+}
+
+input ScoreInput {
+    position: Int
+    name: String
+    score: Int
+    isHuman: Boolean
+    playerName: String
 }
 
 type Mutation {
     createJob(input: CreateJobInput!): Job
     updateJob(input: UpdateJobInput!): Job
+
+    createScore(input: CreateScoreInput!): [Score]
 }
 
 type Query {
     job(id: ID!): Job
+    scores: [Score]
 }
 
 type Subscription {

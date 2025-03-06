@@ -71,6 +71,44 @@ internal class Api
             });
 
 
+        var scoresTable = new Table(
+            stack,
+            "MKScoreScoresTable",
+            new TableProps
+            {
+                PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
+                {
+                    Name = "id",
+                    Type = AttributeType.STRING,
+                },
+            });
+
+        var scoresDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreScoresDynamoDataSource", scoresTable);
+
+        scoresDynamoDbDataSource.CreateResolver(
+            "MKScoreJobsGetResolver",
+            new ResolverProps
+            {
+                TypeName = "Query",
+                FieldName = "job",
+                Api = api,
+                DataSource = jobsDynamoDbDataSource,
+                RequestMappingTemplate = MappingTemplate.DynamoDbQuery(KeyCondition.Eq("id", "id")),
+                ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
+            });
+
+        jobsDynamoDbDataSource.CreateResolver(
+            "MKScoreJobsUpdateResolver",
+            new ResolverProps
+            {
+                TypeName = "Mutation",
+                FieldName = "updateJob",
+                Api = api,
+                DataSource = jobsDynamoDbDataSource,
+                RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Is("input.id"), Values.Projecting("input")),
+                ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
+            });
+
         _ = new CfnOutput(stack, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
         _ = new CfnOutput(stack, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
     }

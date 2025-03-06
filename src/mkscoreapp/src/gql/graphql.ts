@@ -20,24 +20,34 @@ export type CreateJobInput = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateScoreInput = {
+  score?: InputMaybe<ScoreInput>;
+};
+
 export type Job = {
   __typename?: 'Job';
   id: Scalars['ID']['output'];
   isFinished?: Maybe<Scalars['Boolean']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  scores?: Maybe<Array<Maybe<ScoreEntry>>>;
+  scores?: Maybe<Array<Maybe<ScoreSuggestion>>>;
   uploadUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
   createJob?: Maybe<Job>;
+  createScore?: Maybe<Array<Maybe<Score>>>;
   updateJob?: Maybe<Job>;
 };
 
 
 export type MutationCreateJobArgs = {
   input: CreateJobInput;
+};
+
+
+export type MutationCreateScoreArgs = {
+  input: CreateScoreInput;
 };
 
 
@@ -48,6 +58,7 @@ export type MutationUpdateJobArgs = {
 export type Query = {
   __typename?: 'Query';
   job?: Maybe<Job>;
+  scores?: Maybe<Array<Maybe<Score>>>;
 };
 
 
@@ -55,15 +66,33 @@ export type QueryJobArgs = {
   id: Scalars['ID']['input'];
 };
 
-export type ScoreEntry = {
-  __typename?: 'ScoreEntry';
+export type Score = {
+  __typename?: 'Score';
+  id: Scalars['ID']['output'];
+  isHuman?: Maybe<Scalars['Boolean']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  playerName?: Maybe<Scalars['String']['output']>;
+  position?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ScoreInput = {
+  isHuman?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  playerName?: InputMaybe<Scalars['String']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type ScoreSuggestion = {
+  __typename?: 'ScoreSuggestion';
   isHuman?: Maybe<Scalars['Boolean']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   position?: Maybe<Scalars['Int']['output']>;
   score?: Maybe<Scalars['Int']['output']>;
 };
 
-export type ScoreEntryInput = {
+export type ScoreSuggestionInput = {
   isHuman?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   position?: InputMaybe<Scalars['Int']['input']>;
@@ -83,7 +112,7 @@ export type SubscriptionUpdatedJobArgs = {
 export type UpdateJobInput = {
   id?: InputMaybe<Scalars['ID']['input']>;
   isFinished?: InputMaybe<Scalars['Boolean']['input']>;
-  scores?: InputMaybe<Array<InputMaybe<ScoreEntryInput>>>;
+  scores?: InputMaybe<Array<InputMaybe<ScoreInput>>>;
   uploadUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -99,7 +128,7 @@ export type UpdatedJobSubscriptionVariables = Exact<{
 }>;
 
 
-export type UpdatedJobSubscription = { __typename?: 'Subscription', updatedJob?: { __typename?: 'Job', id: string, isFinished?: boolean | null, scores?: Array<{ __typename?: 'ScoreEntry', position?: number | null, name?: string | null, score?: number | null, isHuman?: boolean | null } | null> | null } | null };
+export type UpdatedJobSubscription = { __typename?: 'Subscription', updatedJob?: { __typename?: 'Job', id: string, isFinished?: boolean | null, scores?: Array<{ __typename?: 'ScoreSuggestion', position?: number | null, name?: string | null, score?: number | null, isHuman?: boolean | null } | null> | null } | null };
 
 
 export const CreateJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateJobInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"uploadUrl"}}]}}]}}]} as unknown as DocumentNode<CreateJobMutation, CreateJobMutationVariables>;

@@ -4,6 +4,7 @@ import { DefaultApolloClient } from '@vue/apollo-composable'
 import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from '@apollo/client/core'
 import { AUTH_TYPE, createAuthLink, type AuthOptions } from 'aws-appsync-auth-link';
 import { createSubscriptionHandshakeLink } from 'aws-appsync-subscription-link';
+import { createVInlineFields } from '@wdns/vuetify-inline-fields';
 
 import App from './App.vue'
 import appSyncConfig from "./aws-exports";
@@ -32,8 +33,13 @@ const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+const VInlineFields = createVInlineFields({
+  // See Shared Props section for available options
+});
+
 const app = createApp(App)
 app.provide(DefaultApolloClient, apolloClient)
+app.use(VInlineFields);
 registerPlugins(app)
 
 app.mount('#app')

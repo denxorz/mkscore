@@ -1,20 +1,30 @@
 <template>
   <v-container class="fill-height">
-    <v-responsive class="align-centerfill-height mx-auto" max-width="900">
-      <v-card class="mx-auto" max-width="300">
+    <v-responsive class="align-center fill-height mx-auto">
+      <v-card class="mx-auto styled-card">
         <v-progress-linear v-show="isWorking" indeterminate rounded></v-progress-linear>
 
-        <v-data-table :items="items" hide-default-footer hide-default-header :headers="headers">
-          <template v-slot:item.player="{ value }">
-            <v-chip v-if="value">
-              {{ value }}
-            </v-chip>
+        <v-data-table :items="items" hide-default-footer hide-default-header :headers="headers" class="styled-table"
+          width="100%">
+          <template #[`item.score`]="{ item }">
+            <VInlineCustomField v-model="item.score">
+              <template #default="settings">
+                <div class="slider-container">
+                  <v-slider v-model="item.score" max="60" :step="1" hide-details class="styled-slider"></v-slider>
+                  <v-text-field v-model="item.score" density="compact" style="width: 80px" type="number"
+                    variant="outlined" hide-details></v-text-field>
+                </div>
+              </template>
+            </VInlineCustomField>
+          </template>
+          <template #[`item.player`]="{ item }">
+            <VInlineSelect v-model="item.player" :items="players" name="state" />
           </template>
         </v-data-table>
 
-        <v-form @submit.prevent="handleSubmit" v-if="!items?.length">
+        <v-form @submit.prevent="handleSubmit" v-if="!items?.length" class="styled-form">
           <v-file-input v-model="file" :disabled="isWorking" />
-          <v-btn type="submit" :disabled="isWorking">add</v-btn>
+          <v-btn type="submit" :disabled="isWorking">Add</v-btn>
         </v-form>
       </v-card>
     </v-responsive>
@@ -25,28 +35,25 @@
 import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { graphql } from '@/gql'
 import axios from 'axios'
-import type { Job, Maybe, ScoreEntry } from '@/gql/graphql';
+import type { Job, Maybe, ScoreSuggestion } from '@/gql/graphql';
 
-// const { result: queryResult } = useQuery(
-//   graphql(`
-//     query getJob($id: ID!) {
-//       job(id: $id) {
-//         name
-//       }
-//     }
-//   `),
-//   { id: "1337" }
-// )
+type ScoreSuggestionL = {
+  isHuman?: boolean | null;
+  name?: string | null;
+  position?: number | null;
+  score?: number;
+  player?: string;
+};
 
 const job = ref<Job | null | undefined>();
 const id = computed(() => job.value?.id || '');
 const isWorking = ref(false);
-const items = computed(() => (job?.value?.scores ?? []).map(s => ({ ...s, player: playerName(s) })))
+const items = ref<ScoreSuggestionL[]>([]);
 const headers = [
-  { title: 'Pos', key: 'position' },
-  { title: 'Name', key: 'name' },
-  { title: 'Score', key: 'score' },
-  { title: 'Player', key: 'player' },
+  { title: 'Pos', key: 'position', width: '100px' },
+  { title: 'Name', key: 'name', width: '200px' },
+  { title: 'Score', key: 'score', width: '300px' }, // Increased the width of the Score column
+  { title: 'Player', key: 'player', width: '150px' },
 ]
 
 const { mutate: createJob } = useMutation(
@@ -60,7 +67,7 @@ const { mutate: createJob } = useMutation(
   `)
 )
 
-const playerName = (s: Maybe<ScoreEntry>) => {
+const playerName = (s: Maybe<ScoreSuggestion>) => {
   if (!s?.isHuman) return undefined;
 
   switch (s.name) {
@@ -74,6 +81,7 @@ const playerName = (s: Maybe<ScoreEntry>) => {
     default: return undefined;
   }
 };
+const players = ["", "JP", "Koen", "Marcel", "Lui", "Wim", "Dennis", "Boris"]
 
 const subscriptionVariables = computed(() => ({ id: id.value }));
 const subscriptionEnabled = computed(() => !!(subscriptionVariables.value?.id));
@@ -100,6 +108,7 @@ const { result: subscriptionResult, error: createSubError } = useSubscription(
 watch(subscriptionResult, nv => {
   job.value = nv?.updatedJob;
   isWorking.value = !(job.value?.isFinished ?? false);
+  items.value = (job?.value?.scores ?? []).map(s => ({ ...s, player: playerName(s), score: s?.score ?? undefined }))
 });
 watch(createSubError, nv => console.log("subscriptionError", { nv }));
 
@@ -128,3 +137,44 @@ async function uploadImage(file: File, url: string) {
   }
 }
 </script>
+
+<style scoped>
+.styled-card {
+  max-width: 1200px;
+  /* Increased the width of the card */
+  padding: 20px;
+}
+
+.styled-table {
+  margin-top: 20px;
+  width: 100%;
+  /* Ensure the table takes up the full width of the card */
+}
+
+.styled-form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  /* Ensure the slider container takes up the full width */
+}
+
+.styled-slider .v-input__control {
+  height: 36px;
+  /* Increase the height of the slider */
+  flex-grow: 1;
+  /* Allow the slider to grow and take up available space */
+}
+
+.v-file-input,
+.v-btn {
+  margin-top: 20px;
+}
+</style>

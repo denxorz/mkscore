@@ -5,7 +5,6 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Lambda.EventSources;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.DynamoDB;
-using Amazon.CDK.AWS.Apigatewayv2;
 
 namespace Infrastructure;
 

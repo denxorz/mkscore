@@ -113,10 +113,10 @@ public class Function
                         OperationName = "updateJob",
                         Variables = new
                         {
-                            input = new ScoreEntry(objectKey, true, playerStats)
+                            input = new ScoreSuggestion(objectKey, true, playerStats)
                         }
                     };
-                    var res = await graphqlClient.SendMutationAsync<ScoreEntry>(updateJobRequest);
+                    var res = await graphqlClient.SendMutationAsync<ScoreSuggestion>(updateJobRequest);
                     context.Logger.LogInformation($"SendMutationAsync:{string.Join("/", res.Errors?.Select(e => e.Message) ?? [])}");
                 }
             }
