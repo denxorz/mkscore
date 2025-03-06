@@ -7,7 +7,7 @@
         <v-data-table :items="items" hide-default-footer hide-default-header :headers="headers" class="styled-table"
           width="100%">
           <template #[`item.score`]="{ item }">
-            <VInlineCustomField v-model="item.score">
+            <VInlineCustomField v-model="item.score" :loading-wait="false">
               <template #default="settings">
                 <div class="slider-container">
                   <v-slider v-model="item.score" max="60" :step="1" hide-details class="styled-slider"></v-slider>
@@ -18,7 +18,7 @@
             </VInlineCustomField>
           </template>
           <template #[`item.player`]="{ item }">
-            <VInlineSelect v-model="item.player" :items="players" name="state" />
+            <VInlineSelect v-model="item.player" :items="players" name="state" :loading-wait="false" />
           </template>
         </v-data-table>
 
