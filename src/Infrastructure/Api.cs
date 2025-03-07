@@ -86,25 +86,24 @@ internal class Api
         var scoresDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreScoresDynamoDataSource", scoresTable);
 
         scoresDynamoDbDataSource.CreateResolver(
-            "MKScoreJobsGetResolver",
+            "MKScoreScoresListResolver",
             new ResolverProps
             {
                 TypeName = "Query",
-                FieldName = "job",
+                FieldName = "scores",
                 Api = api,
-                DataSource = jobsDynamoDbDataSource,
-                RequestMappingTemplate = MappingTemplate.DynamoDbQuery(KeyCondition.Eq("id", "id")),
-                ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
+                DataSource = scoresDynamoDbDataSource,
+                RequestMappingTemplate = MappingTemplate.DynamoDbScanTable(),
+                ResponseMappingTemplate = MappingTemplate.DynamoDbResultList(),
             });
 
-        jobsDynamoDbDataSource.CreateResolver(
-            "MKScoreJobsUpdateResolver",
+        scoresDynamoDbDataSource.CreateResolver(
+            "MKScoreScoresCreateResolver",
             new ResolverProps
             {
                 TypeName = "Mutation",
-                FieldName = "updateJob",
+                FieldName = "createScore",
                 Api = api,
-                DataSource = jobsDynamoDbDataSource,
                 RequestMappingTemplate = MappingTemplate.DynamoDbPutItem(PrimaryKey.Partition("id").Is("input.id"), Values.Projecting("input")),
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });

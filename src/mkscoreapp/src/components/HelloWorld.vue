@@ -22,10 +22,12 @@
           </template>
         </v-data-table>
 
-        <v-form @submit.prevent="handleSubmit" v-if="!items?.length" class="styled-form">
+        <v-form @submit.prevent="addNewImage" v-if="!items?.length" class="styled-form">
           <v-file-input v-model="file" :disabled="isWorking" />
           <v-btn type="submit" :disabled="isWorking">Add</v-btn>
         </v-form>
+
+        <v-btn v-else :disabled="isWorking" @click="submitScores">Submit scores</v-btn>
       </v-card>
     </v-responsive>
   </v-container>
@@ -35,7 +37,7 @@
 import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { graphql } from '@/gql'
 import axios from 'axios'
-import type { Job, Maybe, ScoreSuggestion } from '@/gql/graphql';
+import type { InputMaybe, Job, Maybe, ScoreSuggestion } from '@/gql/graphql';
 
 type ScoreSuggestionL = {
   isHuman?: boolean | null;
@@ -62,6 +64,16 @@ const { mutate: createJob } = useMutation(
       createJob(input: $input) {
         id
         uploadUrl
+      }
+    }
+  `)
+)
+
+const { mutate: createScore } = useMutation(
+  graphql(`
+    mutation createScore($input: CreateScoreInput!) {
+      createScore(input: $input) {
+        id
       }
     }
   `)
@@ -114,7 +126,7 @@ watch(createSubError, nv => console.log("subscriptionError", { nv }));
 
 const file = ref<File>();
 
-async function handleSubmit() {
+async function addNewImage() {
   if (!file.value) return;
 
   isWorking.value = true;
@@ -135,6 +147,26 @@ async function uploadImage(file: File, url: string) {
   } catch (err: any) {
     console.log(err.message);
   }
+}
+
+async function submitScores() {
+  isWorking.value = true;
+  const date = new Date().toISOString();
+
+  await Promise.all(items.value.map(score => {
+    const s = {
+      id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
+      jobId: job.value?.id,
+      date,
+      name: score.player,
+      isHuman: score.isHuman,
+      position: score.position,
+      player: score.player,
+    };
+    return createScore({ input: s })
+  }))
+
+  isWorking.value = false;
 }
 </script>
 
