@@ -1,10 +1,9 @@
 <template>
   <v-dialog v-model="dialog" persistent>
-    <HelloWorld />
+    <AddDialog />
   </v-dialog>
 
-  <v-fab class="ms-4" icon="mdi-plus"
-    @click="dialog = !dialog"></v-fab>
+  <v-fab class="ms-4" icon="mdi-plus" @click="dialog = !dialog"></v-fab>
 </template>
 
 <script lang="ts" setup>
