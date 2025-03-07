@@ -162,6 +162,7 @@ async function submitScores() {
       isHuman: score.isHuman,
       position: score.position,
       player: score.player,
+      score: score.score
     };
     return createScore({ input: s })
   }))
