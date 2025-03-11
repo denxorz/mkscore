@@ -1,48 +1,18 @@
 <template>
-  <div class="lists-container mx-2">
-    <v-card class="list">
-      <v-card-title>Top 3 all time</v-card-title>
-      <v-list lines="two">
-        <v-list-item
-          v-for="score in top3AllTime"
-          :key="score.position"
-          :title="score.player"
-          :subtitle="`${score.totalRaces} races`"
-        >
-          <template v-slot:append>
-            <v-chip color="success" variant="tonal" class="score-chip">
-              {{ score.avgScore }}
-            </v-chip>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-card>
-
-    <v-card class="list">
-      <v-card-title>Top 3 this week</v-card-title>
-      <v-list lines="two">
-        <v-list-item
-          v-for="score in top3ThisWeek"
-          :key="score.position"
-          :title="score.player"
-          :subtitle="`${score.totalRaces} races`"
-        >
-          <template v-slot:append>
-            <v-chip color="success" variant="tonal" class="score-chip">
-              {{ score.avgScore }}
-            </v-chip>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-card>
+  <div class="lists-container">
+    <ScoreCard title="Top 3 all time" :scores="top3AllTime" />
+    <ScoreCard title="Top 3 this week" :scores="top3ThisWeek" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useQuery } from "@vue/apollo-composable";
-import { graphql } from "@/gql";
 import { DateTime } from "luxon";
 import { groupBy, orderBy, sumBy, map, ceil } from "lodash";
+
+import { graphql } from "@/gql";
+
+import ScoreCard from "@/components/ScoreCard.vue";
 
 const { result, loading } = useQuery(
   graphql(`
@@ -113,16 +83,7 @@ const top3ThisWeek = computed(() =>
 <style scoped>
 .lists-container {
   display: flex;
-  gap: 1rem;
   justify-content: space-between;
-}
-
-.list {
-  flex: 1;
-}
-
-.score-chip {
-  font-weight: 600;
 }
 
 @media (max-width: 640px) {
