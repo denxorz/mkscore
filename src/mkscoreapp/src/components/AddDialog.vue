@@ -1,70 +1,68 @@
 <template>
-  <v-dialog v-model="isOpen" persistent>
-    <v-container class="fill-height">
-      <v-responsive class="align-center fill-height mx-auto">
-        <v-card class="mx-auto styled-card">
-          <v-progress-linear
-            v-show="isWorking"
-            indeterminate
-            rounded
-          ></v-progress-linear>
+  <v-dialog v-model="isOpen" persistent fullscreen>
+    <v-card>
+      <v-progress-linear
+        v-show="isWorking"
+        indeterminate
+        rounded
+      ></v-progress-linear>
 
-          <v-data-table
-            :items="items"
-            hide-default-footer
-            hide-default-header
-            :headers="headers"
-            class="styled-table"
-            width="100%"
-          >
-            <template #[`item.score`]="{ item }">
-              <VInlineCustomField v-model="item.score" :loading-wait="false">
-                <template #default="settings">
-                  <div class="slider-container">
-                    <v-slider
-                      v-model="item.score"
-                      max="60"
-                      :step="1"
-                      hide-details
-                      class="styled-slider"
-                    ></v-slider>
-                    <v-text-field
-                      v-model="item.score"
-                      density="compact"
-                      style="width: 80px"
-                      type="number"
-                      variant="outlined"
-                      hide-details
-                    ></v-text-field>
-                  </div>
-                </template>
-              </VInlineCustomField>
+      <v-data-table
+        v-if="items?.length"
+        :items="items"
+        hide-default-footer
+        hide-default-header
+        :headers="headers"
+        class="styled-table"
+        width="100%"
+      >
+        <template #[`item.score`]="{ item }">
+          <VInlineCustomField v-model="item.score" :loading-wait="false">
+            <template #default="settings">
+              <div class="slider-container">
+                <v-slider
+                  v-model="item.score"
+                  max="60"
+                  :step="1"
+                  hide-details
+                  class="styled-slider"
+                ></v-slider>
+                <v-text-field
+                  v-model="item.score"
+                  density="compact"
+                  style="width: 80px"
+                  type="number"
+                  variant="outlined"
+                  hide-details
+                ></v-text-field>
+              </div>
             </template>
-            <template #[`item.player`]="{ item }">
-              <VInlineSelect
-                v-model="item.player"
-                :items="players"
-                name="state"
-                :loading-wait="false"
-              />
-            </template>
-          </v-data-table>
+          </VInlineCustomField>
+        </template>
+        <template #[`item.player`]="{ item }">
+          <VInlineSelect
+            v-model="item.player"
+            :items="players"
+            name="state"
+            :loading-wait="false"
+          />
+        </template>
+      </v-data-table>
 
-          <v-form
-            @submit.prevent="addNewImage"
-            v-if="!items?.length"
-            class="styled-form"
-          >
-            <v-file-input v-model="file" :disabled="isWorking" />
-            <v-btn type="submit" :disabled="isWorking">Add</v-btn>
-          </v-form>
+      <v-form
+        @submit.prevent="addNewImage"
+        v-if="!items?.length"
+        class="styled-form"
+      >
+        <v-file-input v-model="file" :disabled="isWorking" />
+        <v-btn type="submit" :disabled="isWorking">Add</v-btn>
+      </v-form>
 
-          <v-btn v-else :disabled="isWorking" @click="submitScores"
-            >Submit scores</v-btn
-          >
-        </v-card>
-      </v-responsive>
-    </v-container>
+      <v-btn v-else :disabled="isWorking || !file" @click="submitScores"
+        >Submit scores</v-btn
+      >
+      <v-btn @click="isOpen = false">Cancel</v-btn>
+    </v-card>
   </v-dialog>
 </template>
 
@@ -91,7 +89,7 @@ const items = ref<ScoreSuggestionL[]>([]);
 const headers = [
   { title: "Pos", key: "position", width: "100px" },
   { title: "Name", key: "name", width: "200px" },
-  { title: "Score", key: "score", width: "300px" }, // Increased the width of the Score column
+  { title: "Score", key: "score", width: "300px" },
   { title: "Player", key: "player", width: "150px" },
 ];
 
@@ -138,7 +136,18 @@ const playerName = (s: Maybe<ScoreSuggestion>) => {
       return undefined;
   }
 };
-const players = ["", "JP", "Koen", "Marcel", "Lui", "Wim", "Dennis", "Boris"];
+const players = [
+  "",
+  "JP",
+  "Koen",
+  "Marcel",
+  "Lui",
+  "Wim",
+  "Dennis",
+  "Boris",
+  "Ploy",
+  "Erwin",
+];
 
 const subscriptionVariables = computed(() => ({ id: id.value }));
 const subscriptionEnabled = computed(() => !!subscriptionVariables.value?.id);
@@ -179,10 +188,15 @@ async function addNewImage() {
   if (!file.value) return;
 
   isWorking.value = true;
-  const res = await createJob({ input: { name: "test" } });
-  job.value = res?.data?.createJob;
+  try {
+    const res = await createJob({ input: { name: "test" } });
+    job.value = res?.data?.createJob;
 
-  await uploadImage(file.value, res?.data?.createJob?.uploadUrl ?? "");
+    await uploadImage(file.value, res?.data?.createJob?.uploadUrl ?? "");
+  } catch (error) {
+    console.error("Error adding new image:", error);
+    isWorking.value = false;
+  }
 }
 
 async function uploadImage(file: File, url: string) {
@@ -202,38 +216,43 @@ async function submitScores() {
   isWorking.value = true;
   const date = new Date().toISOString();
 
-  await Promise.all(
-    items.value.map((score) => {
-      const s = {
-        id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
-        jobId: job.value?.id,
-        date,
-        name: score.player,
-        isHuman: score.isHuman,
-        position: score.position,
-        player: score.player,
-        score: score.score,
-      };
-      return createScore({ input: s });
-    })
-  );
-
-  isWorking.value = false;
-  isOpen.value = false;
+  try {
+    await Promise.all(
+      items.value.map((score) => {
+        const s = {
+          id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
+          jobId: job.value?.id,
+          date,
+          name: score.player,
+          isHuman: score.isHuman,
+          position: score.position,
+          player: score.player,
+          score: score.score,
+        };
+        return createScore({ input: s });
+      })
+    );
+  } catch (error) {
+    console.error("Error submitting scores:", error);
+  } finally {
+    isWorking.value = false;
+    isOpen.value = false;
+  }
 }
 </script>
 
 <style scoped>
 .styled-card {
   max-width: 1200px;
-  /* Increased the width of the card */
   padding: 20px;
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .styled-table {
   margin-top: 20px;
   width: 100%;
-  /* Ensure the table takes up the full width of the card */
+  border-collapse: collapse;
 }
 
 .styled-form {
@@ -241,6 +260,7 @@ async function submitScores() {
   justify-content: space-between;
   align-items: center;
   margin-top: 20px;
+  gap: 10px;
 }
 
 .slider-container {
@@ -248,18 +268,40 @@ async function submitScores() {
   align-items: center;
   gap: 10px;
   width: 100%;
-  /* Ensure the slider container takes up the full width */
 }
 
 .styled-slider .v-input__control {
   height: 36px;
-  /* Increase the height of the slider */
   flex-grow: 1;
-  /* Allow the slider to grow and take up available space */
 }
 
 .v-file-input,
 .v-btn {
   margin-top: 20px;
+}
+
+.v-btn {
+  background-color: #1976d2;
+  color: white;
+}
+
+.v-btn:hover {
+  background-color: #1565c0;
+}
+
+.v-progress-circular {
+  margin-left: 10px;
+}
+
+.v-dialog {
+  max-width: 90%;
+}
+
+.v-card {
+  padding: 20px;
+}
+
+.v-container {
+  padding: 20px;
 }
 </style>
