@@ -10,7 +10,7 @@
 
         <v-spacer></v-spacer>
 
-        <v-btn icon @click="dialog = !dialog">
+        <v-btn icon @click="isAddDialogOpen = !isAddDialogOpen">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
 
@@ -21,10 +21,7 @@
 
       <v-main>
         <v-container fluid>
-          <v-dialog v-model="dialog" persistent>
-            <AddDialog />
-          </v-dialog>
-
+          <AddDialog v-model:isOpen="isAddDialogOpen" />
           <Top class="mt-1" />
         </v-container>
       </v-main>
@@ -33,5 +30,5 @@
 </template>
 
 <script lang="ts" setup>
-const dialog = ref(false);
+const isAddDialogOpen = ref(false);
 </script>

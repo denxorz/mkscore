@@ -1,43 +1,78 @@
 <template>
-  <v-container class="fill-height">
-    <v-responsive class="align-center fill-height mx-auto">
-      <v-card class="mx-auto styled-card">
-        <v-progress-linear v-show="isWorking" indeterminate rounded></v-progress-linear>
+  <v-dialog v-model="isOpen" persistent>
+    <v-container class="fill-height">
+      <v-responsive class="align-center fill-height mx-auto">
+        <v-card class="mx-auto styled-card">
+          <v-progress-linear
+            v-show="isWorking"
+            indeterminate
+            rounded
+          ></v-progress-linear>
 
-        <v-data-table :items="items" hide-default-footer hide-default-header :headers="headers" class="styled-table"
-          width="100%">
-          <template #[`item.score`]="{ item }">
-            <VInlineCustomField v-model="item.score" :loading-wait="false">
-              <template #default="settings">
-                <div class="slider-container">
-                  <v-slider v-model="item.score" max="60" :step="1" hide-details class="styled-slider"></v-slider>
-                  <v-text-field v-model="item.score" density="compact" style="width: 80px" type="number"
-                    variant="outlined" hide-details></v-text-field>
-                </div>
-              </template>
-            </VInlineCustomField>
-          </template>
-          <template #[`item.player`]="{ item }">
-            <VInlineSelect v-model="item.player" :items="players" name="state" :loading-wait="false" />
-          </template>
-        </v-data-table>
+          <v-data-table
+            :items="items"
+            hide-default-footer
+            hide-default-header
+            :headers="headers"
+            class="styled-table"
+            width="100%"
+          >
+            <template #[`item.score`]="{ item }">
+              <VInlineCustomField v-model="item.score" :loading-wait="false">
+                <template #default="settings">
+                  <div class="slider-container">
+                    <v-slider
+                      v-model="item.score"
+                      max="60"
+                      :step="1"
+                      hide-details
+                      class="styled-slider"
+                    ></v-slider>
+                    <v-text-field
+                      v-model="item.score"
+                      density="compact"
+                      style="width: 80px"
+                      type="number"
+                      variant="outlined"
+                      hide-details
+                    ></v-text-field>
+                  </div>
+                </template>
+              </VInlineCustomField>
+            </template>
+            <template #[`item.player`]="{ item }">
+              <VInlineSelect
+                v-model="item.player"
+                :items="players"
+                name="state"
+                :loading-wait="false"
+              />
+            </template>
+          </v-data-table>
 
-        <v-form @submit.prevent="addNewImage" v-if="!items?.length" class="styled-form">
-          <v-file-input v-model="file" :disabled="isWorking" />
-          <v-btn type="submit" :disabled="isWorking">Add</v-btn>
-        </v-form>
+          <v-form
+            @submit.prevent="addNewImage"
+            v-if="!items?.length"
+            class="styled-form"
+          >
+            <v-file-input v-model="file" :disabled="isWorking" />
+            <v-btn type="submit" :disabled="isWorking">Add</v-btn>
+          </v-form>
 
-        <v-btn v-else :disabled="isWorking" @click="submitScores">Submit scores</v-btn>
-      </v-card>
-    </v-responsive>
-  </v-container>
+          <v-btn v-else :disabled="isWorking" @click="submitScores"
+            >Submit scores</v-btn
+          >
+        </v-card>
+      </v-responsive>
+    </v-container>
+  </v-dialog>
 </template>
 
-<script setup lang="ts">
-import { useMutation, useSubscription } from '@vue/apollo-composable'
-import { graphql } from '@/gql'
-import axios from 'axios'
-import type { InputMaybe, Job, Maybe, ScoreSuggestion } from '@/gql/graphql';
+<script lang="ts" setup>
+import { useMutation, useSubscription } from "@vue/apollo-composable";
+import { graphql } from "@/gql";
+import axios from "axios";
+import type { Job, Maybe, ScoreSuggestion } from "@/gql/graphql";
 
 type ScoreSuggestionL = {
   isHuman?: boolean | null;
@@ -47,16 +82,18 @@ type ScoreSuggestionL = {
   player?: string;
 };
 
+const isOpen = defineModel<boolean>("isOpen");
+
 const job = ref<Job | null | undefined>();
-const id = computed(() => job.value?.id || '');
+const id = computed(() => job.value?.id || "");
 const isWorking = ref(false);
 const items = ref<ScoreSuggestionL[]>([]);
 const headers = [
-  { title: 'Pos', key: 'position', width: '100px' },
-  { title: 'Name', key: 'name', width: '200px' },
-  { title: 'Score', key: 'score', width: '300px' }, // Increased the width of the Score column
-  { title: 'Player', key: 'player', width: '150px' },
-]
+  { title: "Pos", key: "position", width: "100px" },
+  { title: "Name", key: "name", width: "200px" },
+  { title: "Score", key: "score", width: "300px" }, // Increased the width of the Score column
+  { title: "Player", key: "player", width: "150px" },
+];
 
 const { mutate: createJob } = useMutation(
   graphql(`
@@ -67,7 +104,7 @@ const { mutate: createJob } = useMutation(
       }
     }
   `)
-)
+);
 
 const { mutate: createScore } = useMutation(
   graphql(`
@@ -77,52 +114,64 @@ const { mutate: createScore } = useMutation(
       }
     }
   `)
-)
+);
 
 const playerName = (s: Maybe<ScoreSuggestion>) => {
   if (!s?.isHuman) return undefined;
 
   switch (s.name) {
-    case "Waluigi": return "JP";
-    case "Diddy Kong": return "Koen";
-    case "Donkey Kong": return "Marcel";
-    case "Peach": return "Lui";
-    case "Roy": return "Wim";
-    case "Dry Bones": return "Dennis";
-    case "Baby Mario": return "Boris";
-    default: return undefined;
+    case "Waluigi":
+      return "JP";
+    case "Diddy Kong":
+      return "Koen";
+    case "Donkey Kong":
+      return "Marcel";
+    case "Peach":
+      return "Lui";
+    case "Roy":
+      return "Wim";
+    case "Dry Bones":
+      return "Dennis";
+    case "Baby Mario":
+      return "Boris";
+    default:
+      return undefined;
   }
 };
-const players = ["", "JP", "Koen", "Marcel", "Lui", "Wim", "Dennis", "Boris"]
+const players = ["", "JP", "Koen", "Marcel", "Lui", "Wim", "Dennis", "Boris"];
 
 const subscriptionVariables = computed(() => ({ id: id.value }));
-const subscriptionEnabled = computed(() => !!(subscriptionVariables.value?.id));
+const subscriptionEnabled = computed(() => !!subscriptionVariables.value?.id);
 const { result: subscriptionResult, error: createSubError } = useSubscription(
   graphql(`
-      subscription updatedJob($id: ID!) {
-        updatedJob(id: $id) {
-          id
-          isFinished
-          scores {
-            position
-            name
-            score
-            isHuman
-          }
+    subscription updatedJob($id: ID!) {
+      updatedJob(id: $id) {
+        id
+        isFinished
+        scores {
+          position
+          name
+          score
+          isHuman
         }
       }
-    `),
+    }
+  `),
   subscriptionVariables,
   () => ({
-    enabled: subscriptionEnabled.value
+    enabled: subscriptionEnabled.value,
   })
-)
-watch(subscriptionResult, nv => {
+);
+watch(subscriptionResult, (nv) => {
   job.value = nv?.updatedJob;
   isWorking.value = !(job.value?.isFinished ?? false);
-  items.value = (job?.value?.scores ?? []).map(s => ({ ...s, player: playerName(s), score: s?.score ?? undefined }))
+  items.value = (job?.value?.scores ?? []).map((s) => ({
+    ...s,
+    player: playerName(s),
+    score: s?.score ?? undefined,
+  }));
 });
-watch(createSubError, nv => console.log("subscriptionError", { nv }));
+watch(createSubError, (nv) => console.log("subscriptionError", { nv }));
 
 const file = ref<File>();
 
@@ -133,16 +182,16 @@ async function addNewImage() {
   const res = await createJob({ input: { name: "test" } });
   job.value = res?.data?.createJob;
 
-  await uploadImage(file.value, res?.data?.createJob?.uploadUrl ?? '');
+  await uploadImage(file.value, res?.data?.createJob?.uploadUrl ?? "");
 }
 
 async function uploadImage(file: File, url: string) {
   try {
     await axios.put(url, file, {
       headers: {
-        'Content-Type': file.type,
+        "Content-Type": file.type,
         "Access-Control-Allow-Origin": "*",
-      }
+      },
     });
   } catch (err: any) {
     console.log(err.message);
@@ -153,21 +202,24 @@ async function submitScores() {
   isWorking.value = true;
   const date = new Date().toISOString();
 
-  await Promise.all(items.value.map(score => {
-    const s = {
-      id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
-      jobId: job.value?.id,
-      date,
-      name: score.player,
-      isHuman: score.isHuman,
-      position: score.position,
-      player: score.player,
-      score: score.score
-    };
-    return createScore({ input: s })
-  }))
+  await Promise.all(
+    items.value.map((score) => {
+      const s = {
+        id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
+        jobId: job.value?.id,
+        date,
+        name: score.player,
+        isHuman: score.isHuman,
+        position: score.position,
+        player: score.player,
+        score: score.score,
+      };
+      return createScore({ input: s });
+    })
+  );
 
   isWorking.value = false;
+  isOpen.value = false;
 }
 </script>
 
