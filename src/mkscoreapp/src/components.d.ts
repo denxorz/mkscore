@@ -10,9 +10,10 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddDialog: typeof import('./components/AddDialog.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
-    HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ScoreItem: typeof import('./components/ScoreItem.vue')['default']
     Top: typeof import('./components/Top.vue')['default']
+    TopScoresList: typeof import('./components/TopScoresList.vue')['default']
   }
 }
