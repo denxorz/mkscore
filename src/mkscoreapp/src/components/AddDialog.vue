@@ -55,9 +55,15 @@
         class="styled-form"
       >
         <v-file-input v-model="file" :disabled="isWorking" />
-        <v-btn type="submit" :disabled="isWorking">Add</v-btn>
       </v-form>
 
+      <v-btn
+        v-if="!items?.length"
+        type="submit"
+        :disabled="isWorking"
+        @click="addNewImage"
+        >Add</v-btn
+      >
       <v-btn v-else :disabled="isWorking || !file" @click="submitScores"
         >Submit scores</v-btn
       >
@@ -242,13 +248,6 @@ async function submitScores() {
 </script>
 
 <style scoped>
-.styled-card {
-  max-width: 1200px;
-  padding: 20px;
-  margin: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
 .styled-table {
   margin-top: 20px;
   width: 100%;
@@ -289,19 +288,11 @@ async function submitScores() {
   background-color: #1565c0;
 }
 
-.v-progress-circular {
-  margin-left: 10px;
-}
-
 .v-dialog {
   max-width: 90%;
 }
 
 .v-card {
-  padding: 20px;
-}
-
-.v-container {
   padding: 20px;
 }
 </style>
