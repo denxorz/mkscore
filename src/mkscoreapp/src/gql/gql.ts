@@ -14,15 +14,15 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  ": typeof types.CreateJobDocument,
+    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n        imageUrl\n      }\n    }\n  ": typeof types.CreateJobDocument,
     "\n    mutation createScore($input: CreateScoreInput!) {\n      createScore(input: $input) {\n        id\n      }\n    }\n  ": typeof types.CreateScoreDocument,
-    "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  ": typeof types.UpdatedJobDocument,
+    "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        imageUrl\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  ": typeof types.UpdatedJobDocument,
     "\n    query scores {\n      scores {\n        id\n        position\n        name\n        score\n        isHuman\n        player\n      }\n    }\n  ": typeof types.ScoresDocument,
 };
 const documents: Documents = {
-    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  ": types.CreateJobDocument,
+    "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n        imageUrl\n      }\n    }\n  ": types.CreateJobDocument,
     "\n    mutation createScore($input: CreateScoreInput!) {\n      createScore(input: $input) {\n        id\n      }\n    }\n  ": types.CreateScoreDocument,
-    "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  ": types.UpdatedJobDocument,
+    "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        imageUrl\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  ": types.UpdatedJobDocument,
     "\n    query scores {\n      scores {\n        id\n        position\n        name\n        score\n        isHuman\n        player\n      }\n    }\n  ": types.ScoresDocument,
 };
 
@@ -43,7 +43,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  "): (typeof documents)["\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n      }\n    }\n  "];
+export function graphql(source: "\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n        imageUrl\n      }\n    }\n  "): (typeof documents)["\n    mutation createJob($input: CreateJobInput!) {\n      createJob(input: $input) {\n        id\n        uploadUrl\n        imageUrl\n      }\n    }\n  "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -51,7 +51,7 @@ export function graphql(source: "\n    mutation createScore($input: CreateScoreI
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  "): (typeof documents)["\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  "];
+export function graphql(source: "\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        imageUrl\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  "): (typeof documents)["\n    subscription updatedJob($id: ID!) {\n      updatedJob(id: $id) {\n        id\n        isFinished\n        imageUrl\n        scores {\n          position\n          name\n          score\n          isHuman\n        }\n      }\n    }\n  "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

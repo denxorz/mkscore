@@ -1,11 +1,13 @@
 <template>
-  <v-dialog v-model="isOpen" persistent fullscreen>
+  <v-dialog v-model="isOpen" persistent fullscreen @open="resetDialog">
     <v-card>
       <v-progress-linear
         v-show="isWorking"
         indeterminate
         rounded
       ></v-progress-linear>
+
+      <v-img v-if="image" :src="image" max-height="300"></v-img>
 
       <v-data-table
         v-if="items?.length"
@@ -89,6 +91,7 @@ type ScoreSuggestionL = {
 const isOpen = defineModel<boolean>("isOpen");
 
 const job = ref<Job | null | undefined>();
+const image = computed(() => job.value?.imageUrl);
 const id = computed(() => job.value?.id || "");
 const isWorking = ref(false);
 const items = ref<ScoreSuggestionL[]>([]);
@@ -99,12 +102,15 @@ const headers = [
   { title: "Player", key: "player", width: "150px" },
 ];
 
+watch(image, (img) => console.log({ img }));
+
 const { mutate: createJob } = useMutation(
   graphql(`
     mutation createJob($input: CreateJobInput!) {
       createJob(input: $input) {
         id
         uploadUrl
+        imageUrl
       }
     }
   `)
@@ -163,6 +169,7 @@ const { result: subscriptionResult, error: createSubError } = useSubscription(
       updatedJob(id: $id) {
         id
         isFinished
+        imageUrl
         scores {
           position
           name
@@ -244,6 +251,13 @@ async function submitScores() {
     isWorking.value = false;
     isOpen.value = false;
   }
+}
+
+function resetDialog() {
+  job.value = null;
+  isWorking.value = false;
+  items.value = [];
+  file.value = undefined;
 }
 </script>
 

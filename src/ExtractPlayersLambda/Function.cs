@@ -7,7 +7,9 @@ using GraphQL.Client.Abstractions.Websocket;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.SystemTextJson;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -54,6 +56,10 @@ public class Function
 
                 if (extract is not null)
                 {
+                    using var tableImageStream = ExtractCroppedImage(image, extract.Page);
+                    await s3Client.PutObjectAsync(new() { BucketName = bucketName, Key = $"stats/{objectKey}.png", InputStream = tableImageStream });
+                    var imageUrl = s3Client.GetPreSignedURLAsync(new() { BucketName = bucketName, Key = $"stats/{objectKey}.png", Expires = DateTime.Now.AddMinutes(15), Verb = HttpVerb.GET });
+
                     var lines = extract.Page.Children(extract);
                     var playerStats = new List<PlayerStats>();
 
@@ -67,7 +73,7 @@ public class Function
                             int.TryParse(lines[i].Text, out var position);
                             string name = lines[i + 1].Text;
                             int.TryParse(lines[i + 2].Text, out var score);
-                            int humanLevel = HumanLevel(lines[i + 1], image);
+                            int humanLevel = HumanLevel(MapCoordinatesToImage(lines[i + 1], image), image);
 
                             playerStats.Add(new PlayerStats(position, name, score, humanLevel));
                         }
@@ -79,6 +85,9 @@ public class Function
 
                     // TODO : assumes always 4 players
                     playerStats.OrderByDescending(p => p.IsHuman).Take(4).ToList().ForEach(p => p.IsHuman = true);
+
+
+
 
                     foreach (var player in playerStats)
                     {
@@ -101,6 +110,7 @@ public class Function
                                 updateJob(input: $input) {
                                     id
                                     isFinished
+                                    imageUrl
                                     scores {
                                         position
                                         name
@@ -113,7 +123,7 @@ public class Function
                         OperationName = "updateJob",
                         Variables = new
                         {
-                            input = new ScoreSuggestion(objectKey, true, playerStats)
+                            input = new ScoreSuggestion(objectKey, true, await imageUrl, playerStats)
                         }
                     };
                     var res = await graphqlClient.SendMutationAsync<ScoreSuggestion>(updateJobRequest);
@@ -130,25 +140,29 @@ public class Function
         }
     }
 
-    private static int HumanLevel(Block line, Image<Rgba32> image)
+    private static Rectangle MapCoordinatesToImage(Block line, Image<Rgba32> image)
     {
         var top = Convert.ToInt32(image.Height * line.Geometry.BoundingBox.Top);
         var height = Convert.ToInt32(image.Height * line.Geometry.BoundingBox.Height);
         var left = Convert.ToInt32(image.Width * line.Geometry.BoundingBox.Left);
         var width = Convert.ToInt32(image.Width * line.Geometry.BoundingBox.Width);
+        return new(left, top, width, height);
+    }
 
+    private static int HumanLevel(Rectangle box, Image<Rgba32> image)
+    {
         var totalCellColor = 0;
 
         image.ProcessPixelRows(accessor =>
         {
 
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < box.Height; y++)
             {
-                Span<Rgba32> pixelRow = accessor.GetRowSpan(top + y);
+                Span<Rgba32> pixelRow = accessor.GetRowSpan(box.Y + y);
 
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < box.Width; x++)
                 {
-                    ref Rgba32 pixel = ref pixelRow[left + x];
+                    ref Rgba32 pixel = ref pixelRow[box.X + x];
                     totalCellColor += pixel.R;
                     totalCellColor += pixel.G;
                     totalCellColor += pixel.B;
@@ -157,5 +171,17 @@ public class Function
         });
 
         return totalCellColor;
+    }
+
+    private static MemoryStream ExtractCroppedImage(Image<Rgba32> image, Block block)
+    {
+        var blockCoordinates = MapCoordinatesToImage(block, image);
+
+        var outStream = new MemoryStream();
+        var clone = image.Clone(i => i.Crop(blockCoordinates));
+        clone.Save(outStream, new PngEncoder());
+        outStream.Seek(0, SeekOrigin.Begin);
+
+        return outStream;
     }
 }

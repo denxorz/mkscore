@@ -6,6 +6,7 @@ input UpdateJobInput {
     id: ID
     isFinished: Boolean
     uploadUrl: String
+    imageUrl: String
     scores: [ScoreSuggestionInput]
 }
 
@@ -15,6 +16,7 @@ type Job {
     isFinished: Boolean
     uploadUrl: String
     scores: [ScoreSuggestion]
+    imageUrl: String
 }
 
 type ScoreSuggestion {

@@ -43,7 +43,7 @@ public class CdkStack : Stack
                 },
             });
 
-        var CreateJobLambda = new Function(
+        var createJobLambda = new Function(
             this,
             "MkScoreCreateJobLambda",
             new FunctionProps
@@ -60,15 +60,16 @@ public class CdkStack : Stack
                     exports.handler = async function(event) {
                         const bucket = process.env.IncomingImagesBucket;
                         const s3Client = new S3Client({});
-                        const uuid = crypto.randomUUID();
-                        const putObjectCommand = new PutObjectCommand({Bucket:bucket, Key:`uploads/${uuid}` });
-                        const url = await getSignedUrl(s3Client, putObjectCommand, { expiresIn: 600 });
+                        const id = crypto.randomUUID();
+
+                        const putObjectCommand = new PutObjectCommand({Bucket:bucket, Key:`uploads/${id}` });
+                        const uploadUrl = await getSignedUrl(s3Client, putObjectCommand, { expiresIn: 600 });
 
                         const newJob = {
-                            id: uuid,
+                            id,
                             name: event.arguments.input.name,
                             isFinished: false,
-                            uploadUrl: url,
+                            uploadUrl,
                             scores: [],
                         };
 
@@ -85,10 +86,10 @@ public class CdkStack : Stack
                     "),
             }
         );
-        IncomingImagesBucket.GrantWrite(CreateJobLambda);
+        IncomingImagesBucket.GrantWrite(createJobLambda);
 
-        jobsTable.GrantWriteData(CreateJobLambda);
-        CreateJobLambda.AddEnvironment("JobsTable", jobsTable.TableName);
+        jobsTable.GrantWriteData(createJobLambda);
+        createJobLambda.AddEnvironment("JobsTable", jobsTable.TableName);
 
         var DetectScoreLambda = new Function(
             this,
@@ -158,6 +159,7 @@ public class CdkStack : Stack
                 Architecture = Architecture.ARM_64,
                 Handler = "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
                 Timeout = Duration.Minutes(1),
+                MemorySize = 2048,
                 Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromCustomCommand(
                     "src/ExtractPlayersLambda/bin/function.zip",
@@ -180,7 +182,7 @@ public class CdkStack : Stack
                })
         );
 
-        var graphQlApi = new Api(this, jobsTable, CreateJobLambda);
+        var graphQlApi = new Api(this, jobsTable, createJobLambda);
         graphQlApi.GrantQuery(ExtractPlayersLambda);
         graphQlApi.GrantMutation(ExtractPlayersLambda);
     }
