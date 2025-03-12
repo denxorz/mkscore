@@ -182,7 +182,11 @@ public class CdkStack : Stack
                })
         );
 
-        var graphQlApi = new Api(this, jobsTable, createJobLambda);
+        var graphQlApi = new ApiStack(this, "MkScoreApiStack", new()
+        {
+            JobsTable = jobsTable,
+            CreateJobLambda = createJobLambda
+        });
         graphQlApi.GrantQuery(ExtractPlayersLambda);
         graphQlApi.GrantMutation(ExtractPlayersLambda);
     }

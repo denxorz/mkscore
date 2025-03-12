@@ -5,11 +5,12 @@ using Amazon.CDK.AWS.Lambda;
 
 namespace Infrastructure;
 
-internal class Api
+internal class ApiStack : NestedStack
 {
     private readonly GraphqlApi api;
 
-    public Api(Stack stack, Table jobsTable, Function createJobLambda)
+    public ApiStack(Stack stack, string id, ApiNestedStackProps props)
+        : base(stack, id, props)
     {
         api = new GraphqlApi(
             stack,
@@ -33,7 +34,7 @@ internal class Api
                 },
             });
 
-        var jobsDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreJobsDynamoDataSource", jobsTable);
+        var jobsDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreJobsDynamoDataSource", props.JobsTable);
 
         jobsDynamoDbDataSource.CreateResolver(
             "MKScoreJobsGetResolver",
@@ -59,7 +60,7 @@ internal class Api
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        var jobsLambdaDataSource = api.AddLambdaDataSource("MKScoreJobsLambdaDataSource", createJobLambda);
+        var jobsLambdaDataSource = api.AddLambdaDataSource("MKScoreJobsLambdaDataSource", props.CreateJobLambda);
 
         jobsLambdaDataSource.CreateResolver(
             "MKScoreJobsCreateResolver",
@@ -124,5 +125,11 @@ internal class Api
         api.GrantMutation(function, fields);
         function.AddEnvironment("GraphQLAPIURL", api.GraphqlUrl);
         function.AddEnvironment("GraphQLAPIKey", api.ApiKey);
+    }
+
+    public class ApiNestedStackProps : NestedStackProps
+    {
+        public Table JobsTable { get; set; }
+        public Function CreateJobLambda { get; set; }
     }
 }
