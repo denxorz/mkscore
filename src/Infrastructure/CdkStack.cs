@@ -189,5 +189,7 @@ public class CdkStack : Stack
         });
         graphQlApi.GrantQuery(ExtractPlayersLambda);
         graphQlApi.GrantMutation(ExtractPlayersLambda);
+
+        _ = new VueAppStack(this, "MkScoreVueAppStack", new());
     }
 }

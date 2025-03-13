@@ -13,8 +13,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScoreCard: typeof import('./components/ScoreCard.vue')['default']
-    ScoreItem: typeof import('./components/ScoreItem.vue')['default']
     Top: typeof import('./components/Top.vue')['default']
-    TopScoresList: typeof import('./components/TopScoresList.vue')['default']
   }
 }

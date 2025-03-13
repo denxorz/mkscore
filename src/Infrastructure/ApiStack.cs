@@ -13,7 +13,7 @@ internal class ApiStack : NestedStack
         : base(stack, id, props)
     {
         api = new GraphqlApi(
-            stack,
+            this,
             "MKScoreApi",
             new GraphqlApiProps
             {
@@ -73,7 +73,7 @@ internal class ApiStack : NestedStack
 
 
         var scoresTable = new Table(
-            stack,
+            this,
             "MKScoreScoresTable",
             new TableProps
             {
@@ -109,8 +109,8 @@ internal class ApiStack : NestedStack
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        _ = new CfnOutput(stack, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
-        _ = new CfnOutput(stack, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
+        _ = new CfnOutput(this, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
+        _ = new CfnOutput(this, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
     }
 
     public void GrantQuery(Function function, params string[] fields)
