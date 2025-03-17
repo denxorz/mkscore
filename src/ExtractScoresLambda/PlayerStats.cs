@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ExtractPlayersLambda;
+namespace ExtractScoresLambda;
 
 internal record PlayerStats(
     int Position, 

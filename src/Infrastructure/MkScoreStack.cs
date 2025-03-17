@@ -8,16 +8,17 @@ using Amazon.CDK.AWS.DynamoDB;
 
 namespace Infrastructure;
 
-public class CdkStack : Stack
+public class MkScoreStack : Stack
 {
-    internal CdkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+
+    internal MkScoreStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
     {
-        var IncomingImagesBucket = new Bucket(
+        var jobImagesBucket = new Bucket(
             this,
-            "MkScoreIncomingImagesBucket",
+            "JobImagesBucket",
             new BucketProps
             {
-                BucketName = "mkscore-incoming-images-bucket-1",
+                BucketName = $"mkscore{(id.EndsWith("Dev") ? "-dev" : "")}-job-images-bucket",
                 WebsiteIndexDocument = "index.html",
                 Cors = [
                     new CorsRule
@@ -31,9 +32,27 @@ public class CdkStack : Stack
             }
         );
 
+        var extractedTextBucket = new Bucket(
+            this,
+            "ExtractedTextBucket",
+            new BucketProps
+            {
+                BucketName = $"mkscore{(id.EndsWith("Dev") ? "-dev" : "")}-extracted-text-bucket",
+            }
+        );
+
+        var extractedImagesBucket = new Bucket(
+            this,
+            "ExtractedImagesBucket",
+            new BucketProps
+            {
+                BucketName = $"mkscore{(id.EndsWith("Dev") ? "-dev" : "")}-extracted-images-bucket",
+            }
+        );
+
         var jobsTable = new Table(
             this,
-            "MKScoreJobsTable",
+            "JobsTable",
             new TableProps
             {
                 PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
@@ -45,24 +64,23 @@ public class CdkStack : Stack
 
         var createJobLambda = new Function(
             this,
-            "MkScoreCreateJobLambda",
+            "CreateJobLambda",
             new FunctionProps
             {
                 Runtime = Runtime.NODEJS_LATEST,
                 Architecture = Architecture.ARM_64,
                 Handler = "index.handler",
-                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromInline(@"
                     const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
                     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
                     const crypto = require('crypto');
 
                     exports.handler = async function(event) {
-                        const bucket = process.env.IncomingImagesBucket;
+                        const bucket = process.env.JobImagesBucket;
                         const s3Client = new S3Client({});
                         const id = crypto.randomUUID();
 
-                        const putObjectCommand = new PutObjectCommand({Bucket:bucket, Key:`uploads/${id}` });
+                        const putObjectCommand = new PutObjectCommand({Bucket:bucket, Key:id });
                         const uploadUrl = await getSignedUrl(s3Client, putObjectCommand, { expiresIn: 600 });
 
                         const newJob = {
@@ -86,21 +104,21 @@ public class CdkStack : Stack
                     "),
             }
         );
-        IncomingImagesBucket.GrantWrite(createJobLambda);
+        jobImagesBucket.GrantWrite(createJobLambda);
+        createJobLambda.AddEnvironment("JobImagesBucket", jobImagesBucket.BucketName);
 
         jobsTable.GrantWriteData(createJobLambda);
         createJobLambda.AddEnvironment("JobsTable", jobsTable.TableName);
 
-        var DetectScoreLambda = new Function(
+        var extractTextLambda = new Function(
             this,
-            "MkScoreDetectScoreLambda",
+            "ExtractTextLambda",
             new FunctionProps
             {
                 Runtime = Runtime.NODEJS_LATEST,
                 Architecture = Architecture.ARM_64,
                 Handler = "index.handler",
                 Timeout = Duration.Minutes(1),
-                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromInline(@"
                     const { TextractClient, AnalyzeDocumentCommand } = require('@aws-sdk/client-textract');
                     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
@@ -110,18 +128,19 @@ public class CdkStack : Stack
                         const analyseCommand = new AnalyzeDocumentCommand({
                           Document:{
                             S3Object: { 
-                              Bucket:event.Records[0].s3.bucket.name, 
-                              Name:event.Records[0].s3.object.key 
+                              Bucket: event.Records[0].s3.bucket.name, 
+                              Name: event.Records[0].s3.object.key 
                             }
                           }, 
                           FeatureTypes:['TABLES']
                         });
                         const response = await textractClient.send(analyseCommand);
 
+                        const outBucket = process.env.ExtractedTextBucket;
                         const s3Client = new S3Client({});
                         const putCommand = new PutObjectCommand({
-                            Bucket:event.Records[0].s3.bucket.name, 
-                            Key:`extract/${event.Records[0].s3.object.key.replace('uploads/', '')}.json`,
+                            Bucket: outBucket, 
+                            Key:`${event.Records[0].s3.object.key}.json`,
                             Body: JSON.stringify(response),
                         });
                         await s3Client.send(putCommand);
@@ -129,19 +148,13 @@ public class CdkStack : Stack
                     "),
             }
         );
-        IncomingImagesBucket.GrantReadWrite(DetectScoreLambda);
+        jobImagesBucket.GrantRead(extractTextLambda);
 
-        DetectScoreLambda.AddEventSource(
-            new S3EventSource(
-                IncomingImagesBucket,
-                new S3EventSourceProps
-                {
-                    Events = [EventType.OBJECT_CREATED_PUT],
-                    Filters = [new NotificationKeyFilter { Prefix = "uploads/" }],
-                })
-            );
+        extractedTextBucket.GrantWrite(extractTextLambda);
+        extractTextLambda.AddEnvironment("ExtractedTextBucket", extractedTextBucket.BucketName);
+        extractTextLambda.AddEventSource(new S3EventSource(jobImagesBucket, new S3EventSourceProps { Events = [EventType.OBJECT_CREATED_PUT] }));
 
-        DetectScoreLambda.AddToRolePolicy(
+        extractTextLambda.AddToRolePolicy(
             new PolicyStatement(
                 new PolicyStatementProps
                 {
@@ -150,46 +163,47 @@ public class CdkStack : Stack
                     Resources = ["*"]
                 }));
 
-        var ExtractPlayersLambda = new Function(
+        var extractScoresLambda = new Function(
             this,
-            "MkScoreExtractPlayersLambda",
+            "ExtractScoresLambda",
             new FunctionProps
             {
                 Runtime = Runtime.DOTNET_8,
                 Architecture = Architecture.ARM_64,
-                Handler = "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
+                Handler = "ExtractScoresLambda::ExtractScoresLambda.Function::FunctionHandler",
                 Timeout = Duration.Minutes(1),
                 MemorySize = 2048,
-                Environment = new Dictionary<string, string>() { { "IncomingImagesBucket", IncomingImagesBucket.BucketName } },
                 Code = Code.FromCustomCommand(
-                    "src/ExtractPlayersLambda/bin/function.zip",
-                    ["dotnet lambda package -pl src/ExtractPlayersLambda -o src/ExtractPlayersLambda/bin/function.zip"],
+                    "src/ExtractScoresLambda/bin/function.zip",
+                    ["dotnet lambda package -pl src/ExtractScoresLambda -o src/ExtractScoresLambda/bin/function.zip"],
                     new CustomCommandOptions
                     {
                         CommandOptions = new Dictionary<string, object> { { "shell", true } }
                     })
             }
         );
-        IncomingImagesBucket.GrantReadWrite(ExtractPlayersLambda);
+        extractedTextBucket.GrantRead(extractScoresLambda);
 
-        ExtractPlayersLambda.AddEventSource(
-           new S3EventSource(
-               IncomingImagesBucket,
-               new S3EventSourceProps
-               {
-                   Events = [EventType.OBJECT_CREATED_PUT],
-                   Filters = [new NotificationKeyFilter { Prefix = "extract/" }],
-               })
-        );
+        extractedImagesBucket.GrantReadWrite(extractScoresLambda);
+        extractScoresLambda.AddEnvironment("ExtractedImagesBucket", extractedImagesBucket.BucketName);
 
-        var graphQlApi = new ApiStack(this, "MkScoreApiStack", new()
-        {
-            JobsTable = jobsTable,
-            CreateJobLambda = createJobLambda
-        });
-        graphQlApi.GrantQuery(ExtractPlayersLambda);
-        graphQlApi.GrantMutation(ExtractPlayersLambda);
+        jobImagesBucket.GrantRead(extractScoresLambda);
+        extractScoresLambda.AddEnvironment("JobImagesBucket", jobImagesBucket.BucketName);
 
-        _ = new VueAppStack(this, "MkScoreVueAppStack", new());
+        extractedTextBucket.GrantRead(extractScoresLambda);
+        extractScoresLambda.AddEventSource(new S3EventSource(extractedTextBucket, new S3EventSourceProps { Events = [EventType.OBJECT_CREATED_PUT] }));
+
+        var graphQlApi = new ApiStack(
+            this,
+            "ApiStack",
+            new()
+            {
+                JobsTable = jobsTable,
+                CreateJobLambda = createJobLambda
+            });
+        graphQlApi.GrantQuery(extractScoresLambda);
+        graphQlApi.GrantMutation(extractScoresLambda);
+
+        _ = new VueAppStack(this, "VueAppStack", new());
     }
 }

@@ -3,7 +3,7 @@
 const config = {
   API: {
     GraphQL: {
-      endpoint: 'https://yidtgxvzbvgxzjfhi6btxsenhi.appsync-api.eu-central-1.amazonaws.com/graphql',
+      endpoint: process.env.GraphQLAPIKey ?? '',
       region: 'eu-central-1',
       defaultAuthMode: 'apiKey',
     }

@@ -1,4 +1,4 @@
-﻿namespace ExtractPlayersLambda.Textract;
+﻿namespace ExtractScoresLambda.Textract;
 
 public class Metadata
 {

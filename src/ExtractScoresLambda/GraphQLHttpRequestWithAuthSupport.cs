@@ -2,7 +2,7 @@
 using GraphQL.Client.Abstractions;
 using GraphQL.Client.Http;
 
-namespace ExtractPlayersLambda;
+namespace ExtractScoresLambda;
 
 public class GraphQLHttpRequestWithAuthSupport : GraphQLHttpRequest
 {

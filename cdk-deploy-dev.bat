@@ -1,0 +1,1 @@
+cdk deploy MkScoreDev --profile MkScoreDev

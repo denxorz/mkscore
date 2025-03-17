@@ -5,7 +5,13 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{48770C9A-D32F-46FE-9B7E-502FCEEC65F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractPlayersLambda", "src\ExtractPlayersLambda\ExtractPlayersLambda.csproj", "{86E87839-7EAF-49C4-BBBD-1C8A4E34336A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractScoresLambda", "src\ExtractScoresLambda\ExtractScoresLambda.csproj", "{86E87839-7EAF-49C4-BBBD-1C8A4E34336A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		cdk-deploy-dev.bat = cdk-deploy-dev.bat
+		cdk-deploy-prod.bat = cdk-deploy-prod.bat
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,5 +50,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1DC8654A-198F-47FA-9346-B08990E531E5}
 	EndGlobalSection
 EndGlobal

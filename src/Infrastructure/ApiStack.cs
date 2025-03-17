@@ -5,19 +5,18 @@ using Amazon.CDK.AWS.Lambda;
 
 namespace Infrastructure;
 
-internal class ApiStack : NestedStack
+internal class ApiStack
 {
     private readonly GraphqlApi api;
 
     public ApiStack(Stack stack, string id, ApiNestedStackProps props)
-        : base(stack, id, props)
     {
         api = new GraphqlApi(
-            this,
-            "MKScoreApi",
+            stack,
+            id + "Api",
             new GraphqlApiProps
             {
-                Name = "MKScoreApi",
+                Name = "MkScoreApi",
                 Definition = Definition.FromFile("./src/Infrastructure/apischema.graphql"),
                 AuthorizationConfig = new AuthorizationConfig
                 {
@@ -34,10 +33,10 @@ internal class ApiStack : NestedStack
                 },
             });
 
-        var jobsDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreJobsDynamoDataSource", props.JobsTable);
+        var jobsDynamoDbDataSource = api.AddDynamoDbDataSource(id + "JobsDynamoDataSource", props.JobsTable);
 
         jobsDynamoDbDataSource.CreateResolver(
-            "MKScoreJobsGetResolver",
+            id + "JobsGetResolver",
             new ResolverProps
             {
                 TypeName = "Query",
@@ -49,7 +48,7 @@ internal class ApiStack : NestedStack
             });
 
         jobsDynamoDbDataSource.CreateResolver(
-            "MKScoreJobsUpdateResolver",
+            id + "JobsUpdateResolver",
             new ResolverProps
             {
                 TypeName = "Mutation",
@@ -60,10 +59,10 @@ internal class ApiStack : NestedStack
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        var jobsLambdaDataSource = api.AddLambdaDataSource("MKScoreJobsLambdaDataSource", props.CreateJobLambda);
+        var jobsLambdaDataSource = api.AddLambdaDataSource(id + "JobsLambdaDataSource", props.CreateJobLambda);
 
         jobsLambdaDataSource.CreateResolver(
-            "MKScoreJobsCreateResolver",
+            id + "JobsCreateResolver",
             new ResolverProps
             {
                 TypeName = "Mutation",
@@ -73,8 +72,8 @@ internal class ApiStack : NestedStack
 
 
         var scoresTable = new Table(
-            this,
-            "MKScoreScoresTable",
+            stack,
+            id + "ScoresTable",
             new TableProps
             {
                 PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
@@ -84,10 +83,10 @@ internal class ApiStack : NestedStack
                 },
             });
 
-        var scoresDynamoDbDataSource = api.AddDynamoDbDataSource("MKScoreScoresDynamoDataSource", scoresTable);
+        var scoresDynamoDbDataSource = api.AddDynamoDbDataSource(id + "ScoresDynamoDataSource", scoresTable);
 
         scoresDynamoDbDataSource.CreateResolver(
-            "MKScoreScoresListResolver",
+            id + "ScoresListResolver",
             new ResolverProps
             {
                 TypeName = "Query",
@@ -99,7 +98,7 @@ internal class ApiStack : NestedStack
             });
 
         scoresDynamoDbDataSource.CreateResolver(
-            "MKScoreScoresCreateResolver",
+            id + "ScoresCreateResolver",
             new ResolverProps
             {
                 TypeName = "Mutation",
@@ -109,8 +108,8 @@ internal class ApiStack : NestedStack
                 ResponseMappingTemplate = MappingTemplate.DynamoDbResultItem(),
             });
 
-        _ = new CfnOutput(this, "GraphQLAPIURL", new CfnOutputProps { Value = api.GraphqlUrl });
-        _ = new CfnOutput(this, "GraphQLAPIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
+        _ = new CfnOutput(stack, "APIURL", new CfnOutputProps { Value = api.GraphqlUrl });
+        _ = new CfnOutput(stack, "APIKey", new CfnOutputProps { Value = api.ApiKey ?? "" });
     }
 
     public void GrantQuery(Function function, params string[] fields)

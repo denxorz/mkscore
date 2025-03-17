@@ -1,0 +1,26 @@
+{
+  "Information": [
+    "This file provides default values for the deployment wizard inside Visual Studio and the AWS Lambda commands added to the .NET Core CLI.",
+    "To learn more about the Lambda commands with the .NET Core CLI execute the following command at the command line in the project root directory.",
+    "dotnet lambda help",
+    "All the command line options for the Lambda command can be specified in this file."
+  ],
+  "profile": "default",
+  "region": "eu-central-1",
+  "configuration": "Release",
+  "function-runtime": "dotnet8",
+  "function-memory-size": 128,
+  "function-timeout": 60,
+  "function-handler": "ExtractPlayersLambda::ExtractPlayersLambda.Function::FunctionHandler",
+  "framework": "net8.0",
+  "function-name": "CdkStack-MkScoreExtractPlayersLambda35EDF0FE-TkBKNnXcpuWp",
+  "function-description": "",
+  "package-type": "Zip",
+  "function-role": "arn:aws:iam::766704866489:role/CdkStack-MkScoreExtractPlayersLambdaServiceRole6C12-3Uc3frTxuDw1",
+  "function-architecture": "arm64",
+  "function-subnets": "",
+  "function-security-groups": "",
+  "tracing-mode": "PassThrough",
+  "environment-variables": "\"GraphQLAPIKey\"=\"da2-q4jgb7zanfarpjrjp74cmvmba4\";\"GraphQLAPIURL\"=\"https://pgagcjxksvdqbkkfwjdszvag7u.appsync-api.eu-central-1.amazonaws.com/graphql\";\"IncomingImagesBucket\"=\"mkscore-incoming-images-bucket\"",
+  "image-tag": ""
+}

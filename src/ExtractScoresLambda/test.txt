@@ -3,7 +3,7 @@
     {
       "s3": {
         "bucket": {
-          "name": "mkscore-incoming-images-bucket-1"
+          "name": "mkscore-incoming-images-bucket"
         },
         "object": {
           "key": "extract/051cbd42-ebf1-4ced-8ea3-baf14ed78f9a.json"

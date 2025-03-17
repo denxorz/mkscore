@@ -1,0 +1,1 @@
+cdk deploy MkScoreProd --profile MkScoreProd
