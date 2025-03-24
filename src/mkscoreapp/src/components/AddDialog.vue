@@ -69,7 +69,7 @@
       <v-btn v-else :disabled="isWorking || !file" @click="submitScores"
         >Submit scores</v-btn
       >
-      <v-btn @click="isOpen = false">Cancel</v-btn>
+      <v-btn @click="handleCancel">Cancel</v-btn>
     </v-card>
   </v-dialog>
 </template>
@@ -258,6 +258,11 @@ function resetDialog() {
   isWorking.value = false;
   items.value = [];
   file.value = undefined;
+}
+
+function handleCancel() {
+  resetDialog();
+  isOpen.value = false;
 }
 </script>
 
