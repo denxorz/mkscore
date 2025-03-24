@@ -8,10 +8,11 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
+    "dev-build-only": "vite build --mode development",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix",
-    "codegen": "graphql-codegen -r dotenv/config --config codegen.ts",
-    "codegen-watch": "graphql-codegen -r dotenv/config --config codegen.ts --watch"
+    "codegen": "graphql-codegen -r dotenv/config --config codegen.ts dotenv_config_path=.env.local",
+    "codegen-watch": "graphql-codegen -r dotenv/config --config codegen.ts dotenv_config_path=.env.local --watch"
   },
   "dependencies": {
     "@apollo/client": "^3.13.1",

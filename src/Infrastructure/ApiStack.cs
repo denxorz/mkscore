@@ -9,7 +9,7 @@ internal class ApiStack
 {
     private readonly GraphqlApi api;
 
-    public ApiStack(Stack stack, string id, ApiNestedStackProps props)
+    public ApiStack(Stack stack, string id, ApiStackProps props)
     {
         api = new GraphqlApi(
             stack,
@@ -126,7 +126,7 @@ internal class ApiStack
         function.AddEnvironment("GraphQLAPIKey", api.ApiKey);
     }
 
-    public class ApiNestedStackProps : NestedStackProps
+    public class ApiStackProps : StackProps
     {
         public Table JobsTable { get; set; }
         public Function CreateJobLambda { get; set; }

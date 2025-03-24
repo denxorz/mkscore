@@ -9,9 +9,9 @@ namespace Infrastructure;
 
 class VueAppStack
 {
-    public VueAppStack(Stack stack, string id, NestedStackProps props)
+    public VueAppStack(Stack stack, string id, bool isDev)
     {
-        var domainName = "mkscoreapp.geldhof.eu";
+        var domainName = $"mkscoreapp{(isDev ? "-dev" : "")}.geldhof.eu";
 
         var bucket = new Bucket(
             stack,

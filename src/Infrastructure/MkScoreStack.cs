@@ -10,15 +10,16 @@ namespace Infrastructure;
 
 public class MkScoreStack : Stack
 {
-
-    internal MkScoreStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+    internal MkScoreStack(Construct scope, string id, IStackProps props = null)
+        : base(scope, id, props)
     {
+        var isDev = id.EndsWith("Dev");
         var jobImagesBucket = new Bucket(
             this,
             "JobImagesBucket",
             new BucketProps
             {
-                BucketName = $"mkscore{(id.EndsWith("Dev") ? "-dev" : "")}-job-images-bucket",
+                BucketName = $"mkscore{(isDev ? "-dev" : "")}-job-images-bucket",
                 WebsiteIndexDocument = "index.html",
                 Cors = [
                     new CorsRule
@@ -204,6 +205,6 @@ public class MkScoreStack : Stack
         graphQlApi.GrantQuery(extractScoresLambda);
         graphQlApi.GrantMutation(extractScoresLambda);
 
-        _ = new VueAppStack(this, "VueAppStack", new());
+        _ = new VueAppStack(this, "VueAppStack", isDev);
     }
 }
