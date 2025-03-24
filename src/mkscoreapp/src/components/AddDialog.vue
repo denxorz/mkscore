@@ -57,6 +57,9 @@
         class="styled-form"
       >
         <v-file-input v-model="file" :disabled="isWorking" />
+        <v-btn icon @click="openCamera" :disabled="isWorking">
+          <v-icon>mdi-camera</v-icon>
+        </v-btn>
       </v-form>
 
       <v-btn
@@ -263,6 +266,20 @@ function resetDialog() {
 function handleCancel() {
   resetDialog();
   isOpen.value = false;
+}
+
+function openCamera() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.capture = "environment";
+  input.onchange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+      file.value = target.files[0];
+    }
+  };
+  input.click();
 }
 </script>
 
