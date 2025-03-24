@@ -62,7 +62,7 @@
       <v-btn
         v-if="!items?.length"
         type="submit"
-        :disabled="isWorking"
+        :disabled="isWorking || !file"
         @click="addNewImage"
         >Add</v-btn
       >
