@@ -11,7 +11,7 @@ class VueAppStack
 {
     public VueAppStack(Stack stack, string id, bool isDev)
     {
-        var domainName = $"mkscoreapp{(isDev ? "-dev" : "")}.geldhof.eu";
+        var domainName = $"mkscore{(isDev ? "-dev" : "")}.geldhof.eu";
 
         var bucket = new Bucket(
             stack,

@@ -3,8 +3,8 @@
 const config = {
   API: {
     GraphQL: {
-      endpoint: process.env.GraphQLAPIKey ?? '',
-      region: 'eu-central-1',
+      endpoint: import.meta.env.VITE_GraphQLAPI ?? '',
+      region: 'eu-west-1',
       defaultAuthMode: 'apiKey',
     }
   }
