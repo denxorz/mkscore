@@ -4,14 +4,15 @@ using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.S3.Deployment;
 using Amazon.CDK.AWS.CertificateManager;
+using Amazon.CDK.AWS.DynamoDB;
 
 namespace Infrastructure;
 
 class VueAppStack
 {
-    public VueAppStack(Stack stack, string id, bool isDev)
+    public VueAppStack(Stack stack, string id, VueAppStackProps props)
     {
-        var domainName = $"mkscore{(isDev ? "-dev" : "")}.geldhof.eu";
+        var domainName = $"mkscore{(props.IsDev ? "-dev" : "")}.geldhof.eu";
 
         var bucket = new Bucket(
             stack,
@@ -32,17 +33,13 @@ class VueAppStack
             Sources = [Source.Asset("src/mkscoreapp/dist")]
         });
 
-        var certificateArn = "arn:aws:acm:us-east-1:586794442045:certificate/6658610a-6330-49c5-9c10-3a176f9dcc97";
-        var certificate = Certificate.FromCertificateArn(stack, id + "Certificate", certificateArn);
-        //var certificate = new Certificate(stack, id+"Certificate", new CertificateProps { DomainName = "mkscoreapp.geldhof.eu" }); //  Certificate.FromCertificateArn(stack, "Certificate", certificateArn);
-
         var cdn = new Distribution(
             stack,
             id + "Distribution",
             new DistributionProps
             {
                 DomainNames = [domainName],
-                Certificate = certificate,
+                Certificate = props.Certificate,
                 DefaultRootObject = "index.html",
                 DefaultBehavior = new BehaviorOptions
                 {
@@ -51,5 +48,11 @@ class VueAppStack
             });
 
         _ = new CfnOutput(stack, id + "DomainName", new CfnOutputProps { Value = cdn.DistributionDomainName });
+    }
+
+    public class VueAppStackProps : StackProps
+    {
+        public bool IsDev { get; internal set; }
+        public ICertificate Certificate { get; internal set; }
     }
 }

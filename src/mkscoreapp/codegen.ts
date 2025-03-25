@@ -5,7 +5,7 @@ const config: CodegenConfig = {
   overwrite: true,
   schema: [
     {
-      'https://j27amiviy5b3lbmimtqnskwjta.appsync-api.eu-west-1.amazonaws.com/graphql': {
+      'https://mkscoreapi-dev.geldhof.eu/graphql': {
         headers: {
           "x-api-key": process.env.GraphQLAPIKey,
         },

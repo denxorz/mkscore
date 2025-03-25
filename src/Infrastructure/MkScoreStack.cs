@@ -5,6 +5,7 @@ using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.Lambda.EventSources;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.DynamoDB;
+using Amazon.CDK.AWS.CertificateManager;
 
 namespace Infrastructure;
 
@@ -194,17 +195,31 @@ public class MkScoreStack : Stack
         extractedTextBucket.GrantRead(extractScoresLambda);
         extractScoresLambda.AddEventSource(new S3EventSource(extractedTextBucket, new S3EventSourceProps { Events = [EventType.OBJECT_CREATED_PUT] }));
 
+
+        var certificateArn = "arn:aws:acm:us-east-1:586794442045:certificate/6658610a-6330-49c5-9c10-3a176f9dcc97";
+        var certificate = Certificate.FromCertificateArn(this, id + "Certificate", certificateArn);
+        //var certificate = new Certificate(this, id+"Certificate", new CertificateProps { DomainName = "mkscoreapp.geldhof.eu" }); 
+
         var graphQlApi = new ApiStack(
             this,
             "ApiStack",
             new()
             {
                 JobsTable = jobsTable,
-                CreateJobLambda = createJobLambda
+                CreateJobLambda = createJobLambda,
+                IsDev = isDev,
+                Certificate = certificate,
             });
         graphQlApi.GrantQuery(extractScoresLambda);
         graphQlApi.GrantMutation(extractScoresLambda);
 
-        _ = new VueAppStack(this, "VueAppStack", isDev);
+        _ = new VueAppStack(
+            this,
+            "VueAppStack",
+            new()
+            {
+                IsDev = isDev,
+                Certificate = certificate,
+            });
     }
 }

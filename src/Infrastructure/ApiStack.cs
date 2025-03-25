@@ -1,5 +1,6 @@
 ﻿using Amazon.CDK;
 using Amazon.CDK.AWS.AppSync;
+using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.Lambda;
 
@@ -30,6 +31,11 @@ internal class ApiStack
                             Expires = Expiration.After(Duration.Days(365)),
                         }
                     }
+                },
+                DomainName = new DomainOptions
+                {
+                    DomainName = $"mkscoreapi{(props.IsDev ? "-dev" : "")}.geldhof.eu",
+                    Certificate = props.Certificate,
                 },
             });
 
@@ -130,5 +136,7 @@ internal class ApiStack
     {
         public Table JobsTable { get; set; }
         public Function CreateJobLambda { get; set; }
+        public bool IsDev { get; internal set; }
+        public ICertificate Certificate { get; internal set; }
     }
 }
