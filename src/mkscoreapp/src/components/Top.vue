@@ -1,4 +1,6 @@
 <template>
+  <v-progress-linear v-show="loading" indeterminate rounded></v-progress-linear>
+
   <div class="lists-container">
     <ScoreCard title="Top 3 all time" :scores="top3AllTime" />
     <ScoreCard title="Top 3 this week" :scores="top3ThisWeek" />
@@ -14,7 +16,7 @@ import { graphql } from "@/gql";
 
 import ScoreCard from "@/components/ScoreCard.vue";
 
-const { result, loading } = useQuery(
+const { result, loading, subscribeToMore } = useQuery(
   graphql(`
     query scores {
       scores {
@@ -28,6 +30,32 @@ const { result, loading } = useQuery(
     }
   `)
 );
+
+subscribeToMore(() => ({
+  document: graphql(`
+    subscription createdScore {
+      createdScore {
+        id
+        position
+        name
+        score
+        isHuman
+        player
+      }
+    }
+  `),
+  updateQuery: (previousResult, { subscriptionData }) => {
+    const tmp = {
+      ...previousResult,
+      scores: previousResult.scores ? [...previousResult.scores] : [],
+    };
+    tmp.scores.push({
+      ...subscriptionData.data.createdScore,
+      id: subscriptionData.data.createdScore?.id ?? "",
+    });
+    return tmp;
+  },
+}));
 
 const allTime = computed(() => result.value?.scores?.filter((s) => !!s) ?? []);
 

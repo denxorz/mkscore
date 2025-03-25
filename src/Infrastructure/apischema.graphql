@@ -68,6 +68,6 @@ type Query {
 }
 
 type Subscription {
-    updatedJob(id:ID!): Job 
-    @aws_subscribe(mutations: ["updateJob"])
+    updatedJob(id:ID!): Job @aws_subscribe(mutations: ["updateJob"])
+    createdScore: Score @aws_subscribe(mutations: ["createScore"])
 }

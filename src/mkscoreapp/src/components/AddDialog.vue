@@ -144,6 +144,11 @@ const { mutate: createScore } = useMutation(
     mutation createScore($input: CreateScoreInput!) {
       createScore(input: $input) {
         id
+        position
+        name
+        score
+        isHuman
+        player
       }
     }
   `)
@@ -250,24 +255,21 @@ async function uploadImage(file: File, url: string) {
 
 async function submitScores() {
   isWorking.value = true;
+
   const date = new Date().toISOString();
+  const scores = items.value.map((score) => ({
+    id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
+    jobId: job.value?.id,
+    date,
+    name: score.player,
+    isHuman: score.isHuman,
+    position: score.position,
+    player: score.player,
+    score: score.score,
+  }));
 
   try {
-    await Promise.all(
-      items.value.map((score) => {
-        const s = {
-          id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
-          jobId: job.value?.id,
-          date,
-          name: score.player,
-          isHuman: score.isHuman,
-          position: score.position,
-          player: score.player,
-          score: score.score,
-        };
-        return createScore({ input: s });
-      })
-    );
+    await Promise.all(scores.map((s) => createScore({ input: s })));
   } catch (error) {
     console.error("Error submitting scores:", error);
   } finally {

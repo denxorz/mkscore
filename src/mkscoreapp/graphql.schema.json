@@ -691,6 +691,18 @@
         "isOneOf": null,
         "fields": [
           {
+            "name": "createdScore",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "Score",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updatedJob",
             "description": null,
             "args": [
