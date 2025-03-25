@@ -67,8 +67,43 @@ public class Function
                     var lines = extract.Page.Children(extract);
                     var playerStats = new List<PlayerStats>();
 
-                    var firstLine = lines.First(l => l.Text == "1"); // TODO : handle if not found
-                    var positionLineIndex = lines.IndexOf(firstLine);
+                    var firstLine = lines.FirstOrDefault(l => l.Text?.StartsWith("CONGRAT") == true);
+                    if (firstLine is null)
+                    {
+                        context.Logger.LogInformation($"First line not found");
+
+
+                        var updatefailedJobRequest = new GraphQLHttpRequestWithAuthSupport
+                        {
+                            ApiKey = apiKey,
+                            Query = """
+                            mutation updateJob($input: UpdateJobInput!) {
+                                updateJob(input: $input) {
+                                    id
+                                    isFinished
+                                    imageUrl
+                                    scores {
+                                        position
+                                        name
+                                        score
+                                        isHuman
+                                    }
+                                }
+                            }
+                            """,
+                            OperationName = "updateJob",
+                            Variables = new
+                            {
+                                input = new ScoreSuggestion(objectKey, true, await imageUrl, playerStats)
+                            }
+                        };
+                        var failedRes = await graphqlClient.SendMutationAsync<ScoreSuggestion>(updatefailedJobRequest);
+                        context.Logger.LogInformation($"SendMutationAsync:{string.Join("/", failedRes.Errors?.Select(e => e.Message) ?? [])}");
+                        return;
+                    }
+
+
+                    var positionLineIndex = lines.IndexOf(firstLine) + 1;
 
                     for (int i = positionLineIndex; i < 12 * 3; i += 3)
                     {

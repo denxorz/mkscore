@@ -1,4 +1,5 @@
 <template>
+  <AddDialog v-model:isOpen="isAddDialogOpen" />
   <v-card class="mx-auto" max-width="448">
     <v-layout>
       <v-app-bar density="compact">
@@ -21,7 +22,6 @@
 
       <v-main>
         <v-container fluid>
-          <AddDialog v-model:isOpen="isAddDialogOpen" />
           <Top class="mt-1" />
         </v-container>
       </v-main>

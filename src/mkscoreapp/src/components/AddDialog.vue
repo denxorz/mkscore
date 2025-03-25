@@ -1,13 +1,33 @@
 <template>
-  <v-dialog v-model="isOpen" persistent fullscreen @open="resetDialog">
+  <v-dialog
+    v-model="isOpen"
+    fullscreen
+    @open="resetDialog"
+    transition="dialog-bottom-transition"
+  >
     <v-card>
+      <v-toolbar>
+        <v-btn icon="mdi-close" @click="handleCancel"></v-btn>
+
+        <v-toolbar-title>Add</v-toolbar-title>
+
+        <v-toolbar-items>
+          <v-btn
+            text="Submit scores"
+            variant="text"
+            @click="submitScores"
+            :disabled="isWorking || !file"
+          ></v-btn>
+        </v-toolbar-items>
+      </v-toolbar>
+
+      <v-img v-if="image" :src="image" max-height="300"></v-img>
+
       <v-progress-linear
         v-show="isWorking"
         indeterminate
         rounded
       ></v-progress-linear>
-
-      <v-img v-if="image" :src="image" max-height="300"></v-img>
 
       <v-data-table
         v-if="items?.length"
@@ -310,25 +330,7 @@ function openCamera() {
   flex-grow: 1;
 }
 
-.v-file-input,
-.v-btn {
+.v-file-input {
   margin-top: 20px;
-}
-
-.v-btn {
-  background-color: #1976d2;
-  color: white;
-}
-
-.v-btn:hover {
-  background-color: #1565c0;
-}
-
-.v-dialog {
-  max-width: 90%;
-}
-
-.v-card {
-  padding: 20px;
 }
 </style>
