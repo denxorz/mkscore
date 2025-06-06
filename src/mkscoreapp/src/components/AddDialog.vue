@@ -162,6 +162,8 @@ const playerName = (s: Maybe<ScoreSuggestion>) => {
       return "JP";
     case "Diddy Kong":
       return "Koen";
+    case "Yoshi":
+      return "Koen";
     case "Donkey Kong":
       return "Marcel";
     case "Peach":
@@ -172,6 +174,8 @@ const playerName = (s: Maybe<ScoreSuggestion>) => {
       return "Dennis";
     case "Baby Mario":
       return "Boris";
+    case "Isabelle":
+      return "Ploy";
     default:
       return undefined;
   }
