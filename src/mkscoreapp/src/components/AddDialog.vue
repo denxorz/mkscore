@@ -2,12 +2,15 @@
   <v-dialog
     v-model="isOpen"
     fullscreen
-    @open="resetDialog"
     transition="dialog-bottom-transition"
+    @open="resetDialog"
   >
     <v-card>
       <v-toolbar>
-        <v-btn icon="mdi-close" @click="handleCancel"></v-btn>
+        <v-btn
+          icon="mdi-close"
+          @click="handleCancel"
+        />
 
         <v-toolbar-title>Add</v-toolbar-title>
 
@@ -15,19 +18,28 @@
           <v-btn
             text="Submit scores"
             variant="text"
-            @click="submitScores"
             :disabled="isWorking || !file"
-          ></v-btn>
+            @click="submitScores"
+          />
         </v-toolbar-items>
       </v-toolbar>
 
-      <v-img v-if="image" :src="image" max-height="300"></v-img>
+      <v-img
+        v-if="image"
+        :src="image"
+        max-height="300"
+      />
 
       <v-progress-linear
         v-show="isWorking"
         indeterminate
         rounded
-      ></v-progress-linear>
+      />
+
+      <v-date-picker
+        v-model="date"
+        show-adjacent-months
+      />
 
       <v-data-table
         v-if="items?.length"
@@ -39,8 +51,11 @@
         width="100%"
       >
         <template #[`item.score`]="{ item }">
-          <VInlineCustomField v-model="item.score" :loading-wait="false">
-            <template #default="settings">
+          <VInlineCustomField
+            v-model="item.score"
+            :loading-wait="false"
+          >
+            <template #default>
               <div class="slider-container">
                 <v-slider
                   v-model="item.score"
@@ -48,7 +63,7 @@
                   :step="1"
                   hide-details
                   class="styled-slider"
-                ></v-slider>
+                />
                 <v-text-field
                   v-model="item.score"
                   density="compact"
@@ -56,7 +71,7 @@
                   type="number"
                   variant="outlined"
                   hide-details
-                ></v-text-field>
+                />
               </div>
             </template>
           </VInlineCustomField>
@@ -72,12 +87,19 @@
       </v-data-table>
 
       <v-form
-        @submit.prevent="addNewImage"
         v-if="!items?.length"
         class="styled-form"
+        @submit.prevent="addNewImage"
       >
-        <v-file-input v-model="file" :disabled="isWorking" />
-        <v-btn icon @click="openCamera" :disabled="isWorking">
+        <v-file-input
+          v-model="file"
+          :disabled="isWorking"
+        />
+        <v-btn
+          icon
+          :disabled="isWorking"
+          @click="openCamera"
+        >
           <v-icon>mdi-camera</v-icon>
         </v-btn>
       </v-form>
@@ -87,12 +109,19 @@
         type="submit"
         :disabled="isWorking || !file"
         @click="addNewImage"
-        >Add</v-btn
       >
-      <v-btn v-else :disabled="isWorking || !file" @click="submitScores"
-        >Submit scores</v-btn
+        Add
+      </v-btn>
+      <v-btn
+        v-else
+        :disabled="isWorking || !file"
+        @click="submitScores"
       >
-      <v-btn @click="handleCancel">Cancel</v-btn>
+        Submit scores
+      </v-btn>
+      <v-btn @click="handleCancel">
+        Cancel
+      </v-btn>
     </v-card>
   </v-dialog>
 </template>
@@ -102,6 +131,7 @@ import { useMutation, useSubscription } from "@vue/apollo-composable";
 import { graphql } from "@/gql";
 import axios from "axios";
 import type { Job, Maybe, ScoreSuggestion } from "@/gql/graphql";
+import { DateTime } from "luxon";
 
 type ScoreSuggestionL = {
   isHuman?: boolean | null;
@@ -148,7 +178,7 @@ const { mutate: createScore } = useMutation(
         name
         score
         isHuman
-        player
+        player        
       }
     }
   `)
@@ -252,15 +282,14 @@ async function uploadImage(file: File, url: string) {
         "Access-Control-Allow-Origin": "*",
       },
     });
-  } catch (err: any) {
-    console.log(err.message);
+  } catch (err: unknown) {
+    console.log(err);
   }
 }
 
 async function submitScores() {
   isWorking.value = true;
 
-  const date = new Date().toISOString();
   const scores = items.value.map((score) => ({
     id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
     jobId: job.value?.id,
@@ -303,10 +332,17 @@ function openCamera() {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files[0]) {
       file.value = target.files[0];
+
+      const switchFilenameDate = /^(?<date>\d{16})_c.jpg$/g.exec(file.value.name)?.groups?.date;
+      if (switchFilenameDate && switchFilenameDate.length > 7) {
+        date.value = DateTime.fromISO(switchFilenameDate.slice(0, 7)).toISODate()!;
+      }
     }
   };
   input.click();
 }
+
+const date = ref(DateTime.now().toISODate());
 </script>
 
 <style scoped>
