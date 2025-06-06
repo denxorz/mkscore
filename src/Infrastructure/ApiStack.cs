@@ -82,6 +82,7 @@ internal class ApiStack
             id + "ScoresTable",
             new TableProps
             {
+                BillingMode = BillingMode.PAY_PER_REQUEST,
                 PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
                 {
                     Name = "id",
