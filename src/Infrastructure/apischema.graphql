@@ -1,8 +1,8 @@
-input CreateJobInput {
+input CreateJobInput @aws_api_key @aws_oidc {
     name: String
 }
 
-input UpdateJobInput {
+input UpdateJobInput @aws_api_key @aws_oidc {
     id: ID
     isFinished: Boolean
     uploadUrl: String
@@ -10,7 +10,7 @@ input UpdateJobInput {
     scores: [ScoreSuggestionInput]
 }
 
-type Job {
+type Job @aws_api_key @aws_oidc {
     id: ID!
     name: String
     isFinished: Boolean
@@ -19,21 +19,21 @@ type Job {
     imageUrl: String
 }
 
-type ScoreSuggestion {
+type ScoreSuggestion @aws_api_key @aws_oidc {
     position: Int
     name: String
     score: Int
     isHuman: Boolean
 }
 
-input ScoreSuggestionInput {
+input ScoreSuggestionInput @aws_api_key @aws_oidc {
     position: Int
     name: String
     score: Int
     isHuman: Boolean
 }
 
-input CreateScoreInput {
+input CreateScoreInput @aws_api_key @aws_oidc {
     id: ID!
     position: Int
     name: String
@@ -44,7 +44,7 @@ input CreateScoreInput {
     jobId: ID
 }
 
-type Score {
+type Score @aws_api_key @aws_oidc {
     id: ID!
     position: Int
     name: String
@@ -55,19 +55,19 @@ type Score {
     jobId: ID
 }
 
-type Mutation {
+type Mutation @aws_api_key @aws_oidc {
     createJob(input: CreateJobInput!): Job
     updateJob(input: UpdateJobInput!): Job
 
     createScore(input: CreateScoreInput!): Score
 }
 
-type Query {
+type Query @aws_api_key @aws_oidc {
     job(id: ID!): Job
     scores: [Score]
 }
 
-type Subscription {
+type Subscription @aws_api_key @aws_oidc {
     updatedJob(id:ID!): Job @aws_subscribe(mutations: ["updateJob"])
     createdScore: Score @aws_subscribe(mutations: ["createScore"])
 }

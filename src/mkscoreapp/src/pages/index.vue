@@ -18,6 +18,9 @@
         <v-btn icon>
           <v-icon>mdi-dots-vertical</v-icon>
         </v-btn>
+
+        <v-btn @click="loginWithRedirect">Log in</v-btn>
+        <v-btn @click="logout">Log out</v-btn>
       </v-app-bar>
 
       <v-main>
@@ -30,5 +33,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useAuth0 } from "@auth0/auth0-vue";
+
 const isAddDialogOpen = ref(false);
+const { loginWithRedirect, logout } = useAuth0();
 </script>

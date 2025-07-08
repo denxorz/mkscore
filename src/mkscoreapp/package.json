@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.1",
+    "@auth0/auth0-vue": "^2.4.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@mdi/font": "7.4.47",
     "@parcel/watcher": "^2.5.1",

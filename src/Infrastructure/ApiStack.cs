@@ -23,14 +23,24 @@ internal class ApiStack
                 {
                     DefaultAuthorization = new AuthorizationMode
                     {
-                        AuthorizationType = AuthorizationType.API_KEY,
-                        ApiKeyConfig = new ApiKeyConfig
+                        AuthorizationType = AuthorizationType.OIDC,
+                        OpenIdConnectConfig = new OpenIdConnectConfig
                         {
-                            Name = "CDK / Lambda 2025",
-                            Description = "CDK / Lambda",
-                            Expires = Expiration.After(Duration.Days(365)),
+                            OidcProvider = "https://dev-vgge3ka7mx15h1rv.eu.auth0.com/",
                         }
-                    }
+                    },
+                    AdditionalAuthorizationModes =
+                    [
+                        new AuthorizationMode {
+                            AuthorizationType = AuthorizationType.API_KEY,
+                            ApiKeyConfig = new ApiKeyConfig
+                            {
+                                Name = "CDK / Lambda 2025",
+                                Description = "CDK / Lambda",
+                                Expires = Expiration.After(Duration.Days(365)),
+                            }
+                        }
+                    ],
                 },
                 DomainName = new DomainOptions
                 {
