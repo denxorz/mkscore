@@ -143,6 +143,7 @@ type ScoreSuggestionL = {
 
 const isOpen = defineModel<boolean>("isOpen");
 
+const date = ref(DateTime.now().toJSDate());
 const job = ref<Job | null | undefined>();
 const image = computed(() => job.value?.imageUrl);
 const id = computed(() => job.value?.id || "");
@@ -289,11 +290,12 @@ async function uploadImage(file: File, url: string) {
 
 async function submitScores() {
   isWorking.value = true;
+  const isoDate = DateTime.fromJSDate(date.value).toISODate();
 
   const scores = items.value.map((score) => ({
-    id: `${score.isHuman ? "human" : "cpu"}_${date}_${score.position}`,
+    id: `${score.isHuman ? "human" : "cpu"}_${isoDate}_${score.position}`,
     jobId: job.value?.id,
-    date,
+    date: isoDate,
     name: score.player,
     isHuman: score.isHuman,
     position: score.position,
@@ -332,17 +334,19 @@ function openCamera() {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files[0]) {
       file.value = target.files[0];
-
-      const switchFilenameDate = /^(?<date>\d{16})_c.jpg$/g.exec(file.value.name)?.groups?.date;
-      if (switchFilenameDate && switchFilenameDate.length > 7) {
-        date.value = DateTime.fromISO(switchFilenameDate.slice(0, 7)).toISODate()!;
-      }
     }
   };
   input.click();
 }
 
-const date = ref(DateTime.now().toISODate());
+watch(file, nv => {
+  if (!nv) return;
+
+  const switchFilenameDate = /^(?<date>\d{16})_c.jpg$/g.exec(nv.name)?.groups?.date;
+  if (switchFilenameDate && switchFilenameDate.length > 7) {
+    date.value = DateTime.fromISO(switchFilenameDate.slice(0, 8)).toJSDate()!;
+  }
+})
 </script>
 
 <style scoped>
